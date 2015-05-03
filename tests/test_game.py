@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from unittest import TestCase, skip
+from unittest import TestCase
 from unittest.mock import Mock
 
 from tekmate.game import Player, Item, Needle
