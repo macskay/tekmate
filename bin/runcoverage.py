@@ -1,6 +1,8 @@
+# -*- encoding: utf-8 -*-
+
 import coverage
 from unittest import TextTestRunner, TestLoader
-from os.path import split, join, abspath
+from os.path import split, abspath
 from os import chdir
 
 if __name__ == "__main__":

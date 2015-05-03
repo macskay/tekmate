@@ -3,7 +3,7 @@
 
 from setuptools import setup
 
-setup(name="tazlib",
+setup(name="tekmate",
       version="0.0.1",
       description="Tekmate - Stargate-Based RPG",
       author="Max",
