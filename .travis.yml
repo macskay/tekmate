@@ -14,4 +14,4 @@ notifications:
 script:
   - nosetests tests
 after_success:
- - coveralls
+  - coveralls
