@@ -9,9 +9,10 @@ notifications:
   email:
   recipients:
     - KlingmannM@gmail.com
+    - williamkmanire@gmail.com
   on_success: always
   on_failed: always
 script:
   - nosetests tests
 after_success:
-  - coveralls
+ - coveralls

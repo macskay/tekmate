@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-from collections import namedtuple
 
 from unittest import TestCase, skip
 from unittest.mock import Mock

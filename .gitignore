@@ -42,7 +42,6 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *,cover
-cover/
 
 # Translations
 *.mo
@@ -52,10 +51,8 @@ cover/
 *.log
 
 # Sphinx documentation
-docs/_build/
+# doc/build/
 
 # PyBuilder
 target/
-
-# PyBuilder
 .idea/
