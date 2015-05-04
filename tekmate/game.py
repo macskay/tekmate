@@ -84,3 +84,42 @@ class Key(Item):
     def get_name(self):
         return "Key"
 
+
+class IdCard(Item):
+    class AccessDenied(Exception):
+        pass
+
+    def setup(self):
+        self.unique_attributes["key_code"] = 0
+
+    def get_name(self):
+        return "ID-Card"
+
+    def combine_with(self, other):
+        if self.has_insufficient_permissions(other):
+            raise IdCard.AccessDenied
+        other.usable = True
+
+    def has_insufficient_permissions(self, other):
+        return other.unique_attributes["access_code"] != self.unique_attributes["key_code"]
+
+
+class Door(Item):
+    def setup(self):
+        self.unique_attributes["access_code"] = 0
+
+    def get_name(self):
+        return "Door"
+
+
+class CardReader(Item):
+    class NotAnIdCard(Exception):
+        pass
+
+    def get_name(self):
+        return "Card-Reader"
+
+    def combine_with(self, other):
+        if other.get_name() != "ID-Card":
+            raise CardReader.NotAnIdCard
+        other.unique_attributes["key_code"] += 1

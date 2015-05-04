@@ -3,7 +3,7 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from tekmate.game import Player, Item, Needle, Key, Lock
+from tekmate.game import Player, Item, Needle, Key, Lock, IdCard, Door, CardReader
 
 
 class PlayerTestCase(TestCase):
@@ -109,4 +109,51 @@ class NeedleTestCase(TestCase):
         self.needle.combine(self.lock)
         self.assertTrue(self.key.obtainable)
 
+
+class IdCardTestCase(TestCase):
+    def setUp(self):
+        self.idcard = IdCard([])
+        self.door = Door([])
+
+    def test_can_create_id_card(self):
+        self.assertEqual("ID-Card", self.idcard.get_name())
+
+    def test_key_code_is_defaulted_at_zero(self):
+        self.assertEqual(0, self.idcard.unique_attributes["key_code"])
+
+    def test_id_card_can_open_door(self):
+        self.idcard.combine(self.door)
+        self.assertTrue(self.door.usable)
+
+    def test_when_combined_with_door_and_insufficient_permissions_raise_Access_Denied(self):
+        self.door.unique_attributes["access_code"] = 1
+        self.assertRaises(IdCard.AccessDenied, self.idcard.combine, self.door)
+
+
+class DoorTestCase(TestCase):
+    def setUp(self):
+        self.door = Door([])
+
+    def test_can_create_door(self):
+        self.assertEqual("Door", self.door.get_name())
+
+    def test_access_code_is_defaulted_at_zero(self):
+        self.assertEqual(0, self.door.unique_attributes["access_code"])
+
+
+class CardReaderTestCase(TestCase):
+    def setUp(self):
+        self.reader = CardReader([])
+
+    def test_can_create_card_reader(self):
+        self.assertEqual("Card-Reader", self.reader.get_name())
+
+    def test_when_combined_with_card_reader_increase_key_code(self):
+        idcard = IdCard([])
+        self.reader.combine(idcard)
+        self.assertEqual(idcard.unique_attributes["key_code"], 1)
+
+    def test_when_combined_with_other_than_a_card_raise_exception(self):
+        any_item = Item([])
+        self.assertRaises(CardReader.NotAnIdCard, self.reader.combine, any_item)
 
