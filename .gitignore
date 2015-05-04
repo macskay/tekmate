@@ -34,6 +34,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+cover/
 htmlcov/
 .tox/
 .coverage
@@ -51,10 +52,8 @@ coverage.xml
 *.log
 
 # Sphinx documentation
-docs/_build/
+# doc/build/
 
 # PyBuilder
 target/
-
-# PyBuilder
 .idea/
