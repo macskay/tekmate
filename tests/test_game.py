@@ -4,7 +4,7 @@ from collections import namedtuple
 from unittest import TestCase
 from unittest.mock import Mock
 
-from tekmate.game import Player, Item, Needle, Lock, Key
+from tekmate.game import Player, Item
 
 
 class PlayerTestCase(TestCase):
@@ -75,39 +75,4 @@ class ItemTestCase(TestCase):
     def test_when_remove_from_container_parent_container_loses_item(self):
         self.item.remove_from_parent_container()
         self.assertNotIn(self.item, self.container)
-
-
-class NeedleTestCase(TestCase):
-
-    def setUp(self):
-        self.container = []
-        self.world_container = []
-
-        self.needle = Needle(self.container)
-        self.key = Key(self.world_container)
-        self.lock = Lock(self.world_container)
-
-        self.append_items_to_respective_containers()
-
-    def append_items_to_respective_containers(self):
-        self.container.append(self.needle)
-        self.world_container.append(self.key)
-        self.world_container.append(self.lock)
-
-    def test_can_create_needle(self):
-        self.assertEqual("Needle", self.needle.get_name())
-
-    def test_when_combined_with_not_a_lock_raise_invalid_combination(self):
-        obj = Item([])
-        with self.assertRaises(Item.InvalidCombination):
-            self.needle.combine(obj)
-
-    def test_gets_consumed_when_combined_correctly(self):
-        self.needle.combine(self.lock)
-        self.assertNotIn(self.needle, self.container)
-
-    def test_when_combined_correctly_key_is_obtainable(self):
-        self.needle.combine(self.lock)
-        self.assertTrue(self.key.obtainable)
-
 

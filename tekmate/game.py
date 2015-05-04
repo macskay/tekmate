@@ -39,7 +39,7 @@ class Item(object):
         self.unique_attributes = {}
         self.setup()
 
-    def setup(self):  #pragma: no cover
+    def setup(self):  # pragma: no cover
         pass
 
     def combine(self, other):
@@ -61,26 +61,4 @@ class Item(object):
         if not self.usable:
             raise Item.NotUsable
         return "Use Item"
-
-
-class Needle(Item):
-    def get_name(self):
-        return "Needle"
-
-    def combine_with(self, other):
-        if other.get_name() != "Lock":
-            raise Item.InvalidCombination
-        self.remove_from_parent_container()
-        key_item = next((item for item in other.parent_container if item.get_name() == "Key"))
-        key_item.obtainable = True
-
-
-class Lock(Item):
-    def get_name(self):
-        return "Lock"
-
-
-class Key(Item):
-    def get_name(self):
-        return "Key"
 
