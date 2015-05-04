@@ -36,6 +36,11 @@ class Item(object):
         self.obtainable = False
         self.parent_container = parent_container
         self.name = "Item"
+        self.unique_attributes = {}
+        self.setup()
+
+    def setup(self):  #pragma: no cover
+        pass
 
     def combine(self, other):
         self.combine_with(other)
@@ -68,3 +73,14 @@ class Needle(Item):
         self.remove_from_parent_container()
         key_item = next((item for item in other.parent_container if item.get_name() == "Key"))
         key_item.obtainable = True
+
+
+class Lock(Item):
+    def get_name(self):
+        return "Lock"
+
+
+class Key(Item):
+    def get_name(self):
+        return "Key"
+
