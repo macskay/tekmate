@@ -5,6 +5,9 @@ class Item(object):
     class NotUsable(Exception):
         pass
 
+    class NotObtainable(Exception):
+        pass
+
     class InvalidCombination(Exception):
         pass
 
@@ -72,6 +75,7 @@ class IdCard(Item):
 
     def setup(self):
         self.unique_attributes["key_code"] = 0
+        self.obtainable = True
 
     def get_name(self):
         return "ID-Card"

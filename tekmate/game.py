@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+from tekmate.item import Item
 
 
 class Player(object):
@@ -9,6 +10,8 @@ class Player(object):
         self.bag = []
 
     def add_item(self, item):
+        if not item.obtainable:
+            raise Item.NotObtainable
         item.parent_container = self.bag
         self.bag.append(item)
 
