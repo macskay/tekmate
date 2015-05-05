@@ -1,0 +1,124 @@
+# -*- encoding: utf-8 -*-
+from unittest import TestCase
+
+from tekmate.item import Item, Needle, Lock, Key, IdCard, Door, CardReader
+
+
+class ItemTestCase(TestCase):
+    def setUp(self):
+        self.container = []
+        self.item = Item(self.container)
+        self.container.append(self.item)
+
+    def test_can_create_item(self):
+        self.assertEqual("Item", self.item.get_name())
+
+    def test_not_obtainable_by_default(self):
+        self.assertFalse(self.item.obtainable)
+
+    def test_not_usable_by_default(self):
+        self.assertFalse(self.item.usable)
+
+    def test_when_parent_container_is_none_AssertionError_is_raised(self):
+        with self.assertRaises(AssertionError):
+            Item(None)
+
+    def test_can_combine(self):
+        item = self.item
+
+        class MockItem(Item):
+            def __init__(self):
+                self.called = False
+
+            def combine_with(self, other):
+                self.called = other is item
+
+        mock_item = MockItem()
+        mock_item.combine(self.item)
+        self.assertTrue(mock_item.called)
+
+    def test_when_remove_from_container_parent_container_loses_item(self):
+        self.item.remove_from_parent_container()
+        self.assertNotIn(self.item, self.container)
+
+
+class NeedleTestCase(TestCase):
+
+    def setUp(self):
+        self.container = []
+        self.world_container = []
+
+        self.needle = Needle(self.container)
+        self.key = Key(self.world_container)
+        self.lock = Lock(self.world_container)
+
+        self.append_items_to_respective_containers()
+
+    def append_items_to_respective_containers(self):
+        self.container.append(self.needle)
+        self.world_container.append(self.key)
+        self.world_container.append(self.lock)
+
+    def test_can_create_needle(self):
+        self.assertEqual("Needle", self.needle.get_name())
+
+    def test_when_combined_with_not_a_lock_raise_invalid_combination(self):
+        obj = Item([])
+        with self.assertRaises(Item.InvalidCombination):
+            self.needle.combine(obj)
+
+    def test_gets_consumed_when_combined_correctly(self):
+        self.needle.combine(self.lock)
+        self.assertNotIn(self.needle, self.container)
+
+    def test_when_combined_correctly_key_is_obtainable(self):
+        self.needle.combine(self.lock)
+        self.assertTrue(self.key.obtainable)
+
+
+class IdCardTestCase(TestCase):
+    def setUp(self):
+        self.idcard = IdCard([])
+        self.door = Door([])
+
+    def test_can_create_id_card(self):
+        self.assertEqual("ID-Card", self.idcard.get_name())
+
+    def test_key_code_is_defaulted_at_zero(self):
+        self.assertEqual(0, self.idcard.unique_attributes["key_code"])
+
+    def test_id_card_can_open_door(self):
+        self.idcard.combine(self.door)
+        self.assertTrue(self.door.usable)
+
+    def test_when_combined_with_door_and_insufficient_permissions_raise_Access_Denied(self):
+        self.door.unique_attributes["access_code"] = 1
+        self.assertRaises(IdCard.AccessDenied, self.idcard.combine, self.door)
+
+
+class DoorTestCase(TestCase):
+    def setUp(self):
+        self.door = Door([])
+
+    def test_can_create_door(self):
+        self.assertEqual("Door", self.door.get_name())
+
+    def test_access_code_is_defaulted_at_zero(self):
+        self.assertEqual(0, self.door.unique_attributes["access_code"])
+
+
+class CardReaderTestCase(TestCase):
+    def setUp(self):
+        self.reader = CardReader([])
+
+    def test_can_create_card_reader(self):
+        self.assertEqual("Card-Reader", self.reader.get_name())
+
+    def test_when_combined_with_card_reader_increase_key_code(self):
+        idcard = IdCard([])
+        self.reader.combine(idcard)
+        self.assertEqual(idcard.unique_attributes["key_code"], 1)
+
+    def test_when_combined_with_other_than_a_card_raise_exception(self):
+        any_item = Item([])
+        self.assertRaises(CardReader.NotAnIdCard, self.reader.combine, any_item)
