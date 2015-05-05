@@ -32,13 +32,16 @@ class Item(object):
     def get_name(self):
         return self.name
 
-    def get_look_message(self):
+    def get_look_at_message(self):
         return "This is an Item"
 
     def get_use_message(self):
         if not self.usable:
             raise Item.NotUsable
         return "Use Item"
+
+    def get_description(self):
+        return "This is the Item-Description"
 
 
 class Needle(Item):

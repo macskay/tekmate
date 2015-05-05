@@ -36,3 +36,7 @@ class PlayerTestCase(TestCase):
 
     def test_when_looked_at_get_look_message(self):
         self.assertEqual("This is an Item", self.player.look_at(self.item1))
+
+    def test_when_looked_at_item_in_inventory_get_description(self):
+        self.player.add_item(self.item1)
+        self.assertEqual("This is the Item-Description", self.player.look_at(self.item1))
