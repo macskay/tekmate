@@ -9,34 +9,51 @@ from tekmate.item import Item
 class PlayerTestCase(TestCase):
     def setUp(self):
         self.player = Player()
-        self.item1 = Item([])
-        self.item2 = Item([])
 
-    def test_when_item_is_added_size_of_bag_equals_one(self):
-        self.player.add_item(self.item1)
+        self.create_obtainable_item()
+        self.create_usable_item()
+        self.create_invalid_items()
+
+    def create_obtainable_item(self):
+        self.obtainable_item = Item([])
+        self.obtainable_item.obtainable = True
+
+    def create_usable_item(self):
+        self.usable_item = Item([])
+        self.usable_item.usable = True
+
+    def create_invalid_items(self):
+        self.not_usable_item = Item([])
+        self.not_obtainable_item = Item([])
+
+    def test_when_when_picking_up_not_obtainable_item_raise_exception_and_size_of_bag_should_be_one(self):
+        self.assertRaises(Item.NotObtainable, self.player.add_item, self.not_obtainable_item)
+        self.assertEqual(len(self.player.bag), 0)
+
+    def test_when_picking_up_obtainable_item_size_of_bag_should_be_one(self):
+        self.player.add_item(self.obtainable_item)
         self.assertEqual(len(self.player.bag), 1)
 
-    def test_if_player_can_force_item_combination(self):
+    def test_when_picking_up_obtainable_item_parent_container_should_be_changed_to_bag(self):
+        self.player.add_item(self.obtainable_item)
+        self.assertIs(self.obtainable_item.parent_container, self.player.bag)
+
+    def test_when_using_not_usable_item_raise_exception(self):
+        self.assertRaises(Item.NotUsable, self.player.use_item, self.not_usable_item)
+
+    def test_when_using_usable_item_use_message_should_be_returned(self):
+        self.assertEqual("Use Item", self.player.use_item(self.usable_item))
+
+    def test_when_looked_at_item_in_room_look_at_message_should_be_returned(self):
+        self.assertEqual("This is an Item", self.player.look_at(self.obtainable_item))
+
+    def test_when_looked_at_item_in_bag_description_should_be_returned(self):
+        self.player.add_item(self.obtainable_item)
+        self.assertEqual("This is the Item-Description", self.player.look_at(self.obtainable_item))
+
+    def test_when_trigger_item_combination_is_called_item_combine_functions_are_called(self):
         mock_item1 = Mock(spec=Item)
         mock_item2 = Mock(spec=Item)
         self.player.trigger_item_combination(mock_item1, mock_item2)
         mock_item1.combine.assert_called_with(mock_item2)
         mock_item2.combine.assert_called_with(mock_item1)
-
-    def test_when_item_picked_up_parent_container_is_bag(self):
-        self.player.add_item(self.item1)
-        self.assertIs(self.item1.parent_container, self.player.bag)
-
-    def test_when_used_and_not_usable_raise_exception(self):
-        self.assertRaises(Item.NotUsable, self.player.use_item, self.item1)
-
-    def test_when_used_and_usable_get_use_message(self):
-        self.item1.usable = True
-        self.assertEqual("Use Item", self.player.use_item(self.item1))
-
-    def test_when_looked_at_get_look_message(self):
-        self.assertEqual("This is an Item", self.player.look_at(self.item1))
-
-    def test_when_looked_at_item_in_inventory_get_description(self):
-        self.player.add_item(self.item1)
-        self.assertEqual("This is the Item-Description", self.player.look_at(self.item1))
