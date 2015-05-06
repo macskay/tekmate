@@ -7,3 +7,4 @@ tazlib==1.2.0
 pytmx==3.20.9
 pyscroll==2.14.2
 hg+http://bitbucket.org/pygame/pygame
+mock==1.0.1
