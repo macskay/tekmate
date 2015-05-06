@@ -2,7 +2,8 @@
 from unittest import TestCase
 from tekmate.game import Player
 
-from tekmate.item import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote
+from tekmate.item import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
+    Telephone
 
 
 class ItemTestCase(TestCase):
@@ -147,3 +148,25 @@ class NoteTestCase(TestCase):
     def test_when_combined_with_symbol_folder_note_telephone_should_be_added_to_player_bag(self):
         self.note.combine(self.folder)
         self.assertEqual(self.player.bag[0].get_name(), "Telephone-Note")
+
+
+class TelephoneTestCase(TestCase):
+    def setUp(self):
+        self.telephone = Telephone([])
+        self.setup_player_bag()
+
+    def setup_player_bag(self):
+        self.player = Player()
+        self.tel_note = TelephoneNote(self.player.bag)
+        self.player.add_item(self.tel_note)
+
+    def test_can_create_telephone(self):
+        self.assertEqual(self.telephone.get_name(), "Telephone")
+
+    def test_when_combined_with_other_than_telephone_note_raise_exception(self):
+        any_item = Item([])
+        self.assertRaises(Item.InvalidCombination, self.telephone.combine, any_item)
+
+    def test_when_combined_with_telephone_note_note_gets_consumed(self):
+        self.telephone.combine(self.tel_note)
+        self.assertNotIn(self.tel_note, self.player.bag)
