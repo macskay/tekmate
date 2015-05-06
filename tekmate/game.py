@@ -40,13 +40,16 @@ class PyGameInitializer(object):
 
     def initialize(self):
         pygame.init()
-        pygame.display.set_mode((self.configuration["display_width"], self.configuration["display_height"]))
-        pygame.display.set_caption(self.CAPTION)
-
+        self.set_up_display()
+        self.set_up_mouse()
 
         return self.get_update_context(), self.get_render_context()
 
-    def set_up_mouse_configurations(self):
+    def set_up_display(self):
+        pygame.display.set_mode((self.configuration["display_width"], self.configuration["display_height"]))
+        pygame.display.set_caption(self.CAPTION)
+
+    def set_up_mouse(self):
         pygame.mouse.set_visible(True)
 
     def get_render_context(self):

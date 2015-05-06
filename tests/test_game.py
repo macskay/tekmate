@@ -79,6 +79,9 @@ class PyGameInitializerTestCase(TestCase):
     def test_initialize_pygame_sets_window_resoultion_correctly_from_conf(self):
         self.pygame.display.set_mode.assert_called_with((640, 480))
 
+    def test_when_initialize_mouse_is_getting_configured_correctly(self):
+        self.pygame.mouse.set_visible.assert_called_with(True)
+
     def test_update_context_should_have_a_clock(self):
         self.assertTrue(hasattr(self.uc["clock"], "tick"))
 
@@ -95,8 +98,10 @@ class PyGameInitializerTestCase(TestCase):
 class TekmateFactoryTestCase(TestCase):
     def setUp(self):
         mock_init = Mock(spec=PyGameInitializer)
+        mock_scene = Mock(spec=WorldScene)
         mock_init.initialize.return_value = None, None
         self.mock_init = mock_init
+        self.mock_scene = mock_scene
 
     def assertSceneRegistered(self, identifier, class_type):
         game = TekmateFactory(self.mock_init).create()
@@ -104,11 +109,11 @@ class TekmateFactoryTestCase(TestCase):
         self.assertIsInstance(scene, class_type)
 
     def test_create_should_initialize_pygame(self):
-        TekmateFactory(self.mock_init).create()
+        game = TekmateFactory(self.mock_init).create()
         self.mock_init.initialize.assert_called_with()
 
     def test_create_should_add_world_scene_to_game(self):
-        self.assertSceneRegistered("world", WorldScene)
+        self.assertSceneRegistered("world", self.mock_scene)
 
     def test_create_should_push_world_scene_to_game(self):
         game = TekmateFactory(self.mock_init).create()
