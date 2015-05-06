@@ -1,7 +1,8 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
+from tekmate.game import Player
 
-from tekmate.item import Item, Needle, Lock, Key, IdCard, Door, CardReader
+from tekmate.item import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote
 
 
 class ItemTestCase(TestCase):
@@ -27,13 +28,14 @@ class ItemTestCase(TestCase):
         item = self.item
 
         class MockItem(Item):
-            def __init__(self):
+            def __init__(self, parent_container):
+                super().__init__(parent_container)
                 self.called = False
 
             def combine_with(self, other):
                 self.called = other is item
 
-        mock_item = MockItem()
+        mock_item = MockItem([])
         mock_item.combine(self.item)
         self.assertTrue(mock_item.called)
 
@@ -114,7 +116,7 @@ class CardReaderTestCase(TestCase):
     def test_can_create_card_reader(self):
         self.assertEqual("Card-Reader", self.reader.get_name())
 
-    def test_when_combined_with_card_reader_increase_key_code(self):
+    def test_when_combined_with_id_card_increase_key_code(self):
         idcard = IdCard([])
         self.reader.combine(idcard)
         self.assertEqual(idcard.unique_attributes["key_code"], 1)
@@ -122,3 +124,26 @@ class CardReaderTestCase(TestCase):
     def test_when_combined_with_other_than_a_card_raise_exception(self):
         any_item = Item([])
         self.assertRaises(CardReader.NotAnIdCard, self.reader.combine, any_item)
+
+
+class NoteTestCase(TestCase):
+    def setUp(self):
+        self.folder = SymbolsFolder([])
+        self.player = Player()
+        self.note = Note(self.player.bag)
+        self.player.add_item(self.note)
+
+    def test_can_create_note(self):
+        self.assertEqual("Note", self.note.get_name())
+
+    def test_when_combined_with_other_than_the_symbol_folder_raise_exception(self):
+        any_item = Item([])
+        self.assertRaises(Item.InvalidCombination, self.note.combine, any_item)
+
+    def test_when_combined_with_symbol_folder_remove_note_from_player_bag(self):
+        self.note.combine(self.folder)
+        self.assertNotIn(self.note, self.player.bag)
+
+    def test_when_combined_with_symbol_folder_note_telephone_should_be_added_to_player_bag(self):
+        self.note.combine(self.folder)
+        self.assertEqual(self.player.bag[0].get_name(), "Telephone-Note")
