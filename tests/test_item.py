@@ -2,7 +2,7 @@
 from unittest import TestCase
 from tekmate.game import Player
 
-from tekmate.item import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
+from tekmate.items import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
     Telephone
 
 
