@@ -108,3 +108,36 @@ class CardReader(Item):
         if other.get_name() != "ID-Card":
             raise CardReader.NotAnIdCard
         other.unique_attributes["key_code"] += 1
+
+
+class Note(Item):
+    def setup(self):
+        self.obtainable = True
+
+    def get_name(self):
+        return "Note"
+
+    def combine_with(self, other):
+        if other.get_name() != "Symbols-Folder":
+            raise Item.InvalidCombination
+
+        self.add_telephone_note_to_player_bag()
+        self.remove_from_parent_container()
+
+    def add_telephone_note_to_player_bag(self):
+        player_bag = self.parent_container
+        tel_note = self.create_telephone_note(player_bag)
+        player_bag.append(tel_note)
+
+    def create_telephone_note(self, player_bag):
+        return TelephoneNote(player_bag)
+
+
+class SymbolsFolder(Item):
+    def get_name(self):
+        return "Symbols-Folder"
+
+
+class TelephoneNote(Item):
+    def get_name(self):
+        return "Telephone-Note"
