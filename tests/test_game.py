@@ -1,9 +1,11 @@
 # -*- encoding: utf-8 -*-
-from unittest import TestCase, skip
+from unittest import TestCase
 
-try:
+import pygame
+
+try:  # pragma: no cover
     from unittest.mock import Mock, patch
-except ImportError:
+except ImportError:  # pragma: no cover
     from mock import Mock, patch
 
 from tekmate.game import Player, PyGameInitializer, TekmateFactory, WorldScene
@@ -29,6 +31,17 @@ class PlayerTestCase(TestCase):
     def create_invalid_items(self):
         self.not_usable_item = Item([])
         self.not_obtainable_item = Item([])
+
+    def test_player_position_defaults_at_zero_zero(self):
+        self.assertEqual(self.player.position, (0, 0))
+
+    def test_when_moved_player_in_positive_x_position_should_be_hundred_zero(self):
+        self.player.move_player((300, 150))
+        self.assertEqual(self.player.position, (100, 0))
+
+    def test_when_moved_player_in_negative_x_position_should_be_minus_hundred_zero(self):
+        self.player.move_player((-100, 150))
+        self.assertEqual(self.player.position, (-100, 0))
 
     def test_when_when_picking_up_not_obtainable_item_raise_exception_and_size_of_bag_should_be_one(self):
         self.assertRaises(Item.NotObtainable, self.player.add_item, self.not_obtainable_item)
@@ -100,18 +113,19 @@ class PyGameInitializerTestCase(TestCase):
 
 
 class TekmateFactoryTestCase(TestCase):
-
     def setUp(self):
         mock_init = Mock(spec=PyGameInitializer)
-        self.world_scene_patcher = patch("tekmate.game.WorldScene", spec=WorldScene)
-        self.mock_scene = self.world_scene_patcher.start().return_value
-        self.mock_scene.get_identifier.return_value = "world"
-        self.mock_scene.identifier = "world"
-        mock_init.initialize.return_value = None, None
-        self.mock_init = mock_init
+        mock_scene = Mock(spec=WorldScene)
+        mock_init.initialize.return_value = None, {}
 
-    def tearDown(self):
-        self.world_scene_patcher.stop()
+        self.set_up_display()
+
+        self.mock_init = mock_init
+        self.mock_scene = mock_scene
+
+    def set_up_display(self):
+        pygame.display.init()
+        pygame.display.set_mode((1, 1))
 
     def assertSceneRegistered(self, identifier, class_type):
         game = TekmateFactory(self.mock_init).create()
@@ -122,11 +136,9 @@ class TekmateFactoryTestCase(TestCase):
         game = TekmateFactory(self.mock_init).create()
         self.mock_init.initialize.assert_called_with()
 
-    @skip("TODO")
     def test_create_should_add_world_scene_to_game(self):
-        self.assertSceneRegistered("world", self.mock_scene)
+        self.assertSceneRegistered("world", WorldScene)
 
-    @skip("TODO")
     def test_create_should_push_world_scene_to_game(self):
         game = TekmateFactory(self.mock_init).create()
         self.assertEqual(game.get_name_of_top_scene(), "world")

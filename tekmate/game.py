@@ -11,6 +11,7 @@ class Player(object):
         pass
 
     def __init__(self):
+        self.position = (0, 0)
         self.bag = []
 
     def add_item(self, item):
@@ -30,6 +31,14 @@ class Player(object):
 
     def use_item(self, item1):
         return item1.get_use_message()
+
+    def move_player(self, mouse_pos):
+        x = 0
+        if mouse_pos[0] < self.position[0]:
+            x = -100
+        else:
+            x = 100
+        self.position = (self.position[0]+x, self.position[1])
 
 
 class PyGameInitializer(object):

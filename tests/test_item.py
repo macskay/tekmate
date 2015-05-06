@@ -25,7 +25,6 @@ class ItemTestCase(TestCase):
         with self.assertRaises(AssertionError):
             Item(None)
 
-    @skip("TODO")
     def test_can_combine(self):
         item = self.item
 
