@@ -110,6 +110,11 @@ class CardReader(Item):
         other.unique_attributes["key_code"] += 1
 
 
+class SymbolsFolder(Item):
+    def get_name(self):
+        return "Symbols-Folder"
+
+
 class Note(Item):
     def setup(self):
         self.obtainable = True
@@ -133,11 +138,19 @@ class Note(Item):
         return TelephoneNote(player_bag)
 
 
-class SymbolsFolder(Item):
-    def get_name(self):
-        return "Symbols-Folder"
-
-
 class TelephoneNote(Item):
+    def setup(self):
+        self.obtainable = True
+
     def get_name(self):
         return "Telephone-Note"
+
+
+class Telephone(Item):
+    def get_name(self):
+        return "Telephone"
+
+    def combine_with(self, other):
+        if other.get_name() != "Telephone-Note":
+            raise Item.InvalidCombination
+        other.remove_from_parent_container()
