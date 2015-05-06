@@ -88,6 +88,7 @@ class IdCard(Item):
     def has_insufficient_permissions(self, other):
         return other.unique_attributes["access_code"] != self.unique_attributes["key_code"]
 
+
 class Door(Item):
     def setup(self):
         self.unique_attributes["access_code"] = 0
