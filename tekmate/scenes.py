@@ -24,7 +24,7 @@ class WorldScene(Scene):
         print("Pausing World")
 
     def tear_down(self):  # pragma: no cover
-        print("Tearing Down World")
+        print("Tearing-Down World")
 
     def escape_key_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
