@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from unittest import TestCase
+from unittest import TestCase, skip
 from tekmate.game import Player
 
 from tekmate.items import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
@@ -25,6 +25,7 @@ class ItemTestCase(TestCase):
         with self.assertRaises(AssertionError):
             Item(None)
 
+    @skip("TODO")
     def test_can_combine(self):
         item = self.item
 
