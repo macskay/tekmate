@@ -16,5 +16,7 @@ notifications:
   on_failed: always
 script:
   - nosetests tests
+virtualenv:
+  system_site_packages: true
 after_success:
  - coveralls
