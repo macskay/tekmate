@@ -92,7 +92,7 @@ class PyGameInitializerTestCase(TestCase):
         self.assertIs(self.rc["display"], self.pygame.display.get_surface())
 
 
-class TekmateTestCase(TestCase):
+class TekmateFactoryTestCase(TestCase):
     def setUp(self):
         mock_init = Mock(spec=PyGameInitializer)
         mock_init.initialize.return_value = None, None
