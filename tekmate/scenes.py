@@ -1,28 +1,32 @@
 # -*- encoding: utf-8 -*-
 import pygame
 from taz.game import Scene, Game
-from tekmate.ui import PlayerUI
+
+from tekmate.ui import PlayerUserInterface
 
 
 class WorldScene(Scene):
+    def __init__(self, ident):
+        super(WorldScene, self).__init__(ident)
+        self.player_ui = None
+
     def initialize_scene(self):
-        self.game.render_context["player_ui"] = PlayerUI()
+        self.player_ui = PlayerUserInterface()
 
     def update(self):  # pragma: no cover  (This is only because of all the branches, they will get tested eventually)
-        player_ui = self.game.render_context["player_ui"]
         for event in self.game.update_context["get_events"]():
             if event.type == pygame.QUIT or self.escape_key_pressed(event):
                 raise Game.GameExitException
             elif self.left_mouse_button_pressed(event):
-                player_ui.move_player(event.pos)
+                self.player_ui.player.move_player(event.pos)
             else:
                 pass
 
     def render(self):  # pragma: no cover
         self.game.render_context["display"].fill((0, 0, 0))
-        player_ui = self.game.render_context["player_ui"]
-        player_ui.render()
-        self.game.render_context["display"].blit(player_ui.surface, (player_ui.position, player_ui.position))
+        self.player_ui.render()
+        self.player_ui.draw_player_to_display(self.game.render_context["display"])
+
         pygame.display.flip()
 
     def resume(self):  # pragma: no cover

@@ -1,45 +1,57 @@
 # -*- encoding: utf-8 -*-
-from os import path
+import sys
+
+import os
+from os.path import abspath, split, join
 import pygame
 
-
-class ImageNotFound(Exception):
-    pass
+from tekmate.game import Player
 
 
-class PlayerUI(object):
+class PlayerUserInterface(object):
+    class ImageNotFound(Exception):
+        pass
 
     SCALING_FACTOR = 2.8
 
     def __init__(self):
-        self.surface, self.image = self.create_surface_and_image(PlayerUI.SCALING_FACTOR)
-        self.surface.set_colorkey((0, 128, 128))
-        self.position = (500, 50)
+        self.player = None
+        self.global_images = None
+        self.surface = None
+        self.image = None
+        self.create_surface_and_image(PlayerUserInterface.SCALING_FACTOR)
+        self.player = Player()
 
-    def render(self):  # pragma: no cover
-        self.surface.fill((250, 250, 250))
+    def render(self):
+        self.surface.fill((255, 255, 255))
         self.surface.blit(self.image, (0, 0))
 
+    def draw_player_to_display(self, display):  # pragma: no cover
+        display.blit(self.surface, self.get_position())
+
     def create_surface_and_image(self, factor):
-        surface = self.create_surface_with_factor(factor)
-        image = self.create_image_with_factor(factor)
-        return surface, image
+        self.create_surface_with_factor(factor)
+        self.create_image_with_factor(factor)
 
     def create_surface_with_factor(self, factor):
         surface_proportions = (round(factor * 50), round(factor * 100))
-        surface = pygame.Surface(surface_proportions)
-        surface.convert()
-        return surface
+        self.surface = pygame.Surface(surface_proportions)
+        self.surface.convert()
+        self.surface.set_colorkey((0, 128, 128))
 
     def create_image_with_factor(self, factor):
-        image = self.load_image("player", "player.bmp")
-        img_proportions = (round(factor * image.get_width()), round(factor * image.get_height()))
-        image = pygame.transform.scale(image, img_proportions)
-        return image
+        self.image = self.load_image("player", "player.png")
+        img_proportions = (int(round(factor * self.image.get_width())), int(round(factor * self.image.get_height())))
+        self.image = pygame.transform.scale(self.image, img_proportions)
 
     def load_image(self, folder, name_of_file):
-        fullname = path.join('assets', folder, name_of_file)
+        pth = abspath(split(__file__)[0])
+        sys.path.append(abspath(join(pth, u"..")))
+        fullname = os.path.join(pth, "..", "assets", folder, name_of_file)
         try:
             return pygame.image.load(fullname)
         except:
-            raise ImageNotFound
+            raise PlayerUserInterface.ImageNotFound
+
+    def get_position(self):
+        return self.player.position

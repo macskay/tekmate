@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from unittest import TestCase, skip
+from unittest import TestCase
 
 try:
     from unittest import Mock
@@ -44,7 +44,6 @@ class WorldSceneUpdateTestCase(TestCase):
         self.assertRaisesSystemExit()
 
 
-
 class WorldSceneSetupTestCase(TestCase):
     def setUp(self):
         pygame.display.init()
@@ -52,23 +51,21 @@ class WorldSceneSetupTestCase(TestCase):
         self.world_scene = WorldScene("world")
 
     def test_when_mouse_button_is_pressed_function_should_return_true(self):
-        class mock_event:
+        class MockEvent:
             pos = (130, 200)
             button = 1
             type = pygame.MOUSEBUTTONDOWN
             pygame.key = None
-        event = mock_event()
+        event = MockEvent()
         self.assertTrue(self.world_scene.left_mouse_button_pressed(event))
         self.assertFalse(self.world_scene.escape_key_pressed(event))
 
     def test_when_escape_key_pressed_function_should_return_true(self):
-        class mock_event:
+        class MockEvent:
             pos = None
             button = None
             type = pygame.KEYDOWN
             key = pygame.K_ESCAPE
-        event = mock_event()
+        event = MockEvent()
         self.assertFalse(self.world_scene.left_mouse_button_pressed(event))
         self.assertTrue(self.world_scene.escape_key_pressed(event))
-
-
