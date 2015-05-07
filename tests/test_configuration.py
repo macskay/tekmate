@@ -21,6 +21,7 @@ class PyGameInitializerTestCase(TestCase):
 
     def test_initialze_pygame_actually_initializes_pygame(self):
         self.pygame.init.assert_called_with()
+        print ("Hallo")
 
     def test_initialize_pygame_sets_the_caption(self):
         self.pygame.display.set_caption.assert_called_with(PyGameInitializer.CAPTION)
