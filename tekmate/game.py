@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
-from taz.game import Game
-from tekmate.items import Item
 
-import pygame
-from tekmate.scenes import WorldScene
+from tekmate.items import Item
 
 
 class Player(object):
@@ -11,6 +8,7 @@ class Player(object):
         pass
 
     def __init__(self):
+        self.position = (0, 0)
         self.bag = []
 
     def add_item(self, item):
@@ -31,42 +29,9 @@ class Player(object):
     def use_item(self, item1):
         return item1.get_use_message()
 
-
-class PyGameInitializer(object):
-    CAPTION = "Tek'ma'te"
-
-    def __init__(self, configuration):
-        self.configuration = configuration
-
-    def initialize(self):
-        pygame.init()
-        pygame.display.set_mode((self.configuration["display_width"], self.configuration["display_height"]))
-        pygame.display.set_caption(self.CAPTION)
-        return self.get_update_context(), self.get_render_context()
-
-    def get_render_context(self):
-        render_context = {
-            "flip": pygame.display.flip,
-            "display": pygame.display.get_surface()
-        }
-        return render_context
-
-    def get_update_context(self):
-        update_context = {
-            "clock": pygame.time.Clock(),
-            "get_events": pygame.event.get
-        }
-        return update_context
-
-
-class TekmateFactory(object):
-    def __init__(self, pygame_initializer):
-        self.pygame_initializer = pygame_initializer
-
-    def create(self):
-        update_context, render_context = self.pygame_initializer.initialize()
-        game = Game(update_context, render_context)
-        scene = WorldScene("world")
-        game.register_new_scene(scene)
-        game.push_scene_on_stack("world")
-        return game
+    def move_player(self, mouse_pos):
+        if mouse_pos[0] < self.position[0]:
+            x = -100
+        else:
+            x = 100
+        self.position = (self.position[0] + x, self.position[1])

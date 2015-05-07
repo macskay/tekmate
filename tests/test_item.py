@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
-from tekmate.game import Player
 
+from tekmate.game import Player
 from tekmate.items import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
     Telephone
 
@@ -30,7 +30,7 @@ class ItemTestCase(TestCase):
 
         class MockItem(Item):
             def __init__(self, parent_container):
-                super().__init__(parent_container)
+                super(MockItem, self).__init__(parent_container)
                 self.called = False
 
             def combine_with(self, other):
