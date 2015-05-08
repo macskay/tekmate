@@ -13,6 +13,7 @@ class Item(object):
 
     def __init__(self, parent_container):
         assert parent_container is not None
+        parent_container.append(self)
         self.usable = False
         self.obtainable = False
         self.parent_container = parent_container
@@ -23,16 +24,13 @@ class Item(object):
     def setup(self):  # pragma: no cover
         pass
 
-    def combine(self, other):
-        self.combine_with(other)
-
-    def combine_with(self, other):  # pragma: no cover
+    def combine(self, other):  # pragma: no cover
         pass
 
     def remove_from_parent_container(self):
         self.parent_container.remove(self)
 
-    def add_to_container(self, new_container):
+    def move_to_container(self, new_container):
         new_container.append(self)
         self.remove_from_parent_container()
         self.parent_container = new_container
@@ -56,7 +54,7 @@ class Needle(Item):
     def get_name(self):
         return "Needle"
 
-    def combine_with(self, other):
+    def combine(self, other):
         if other.get_name() != "Lock":
             raise Item.InvalidCombination
         self.remove_from_parent_container()
@@ -85,7 +83,7 @@ class IdCard(Item):
     def get_name(self):
         return "ID-Card"
 
-    def combine_with(self, other):
+    def combine(self, other):
         if self.has_insufficient_permissions(other):
             raise IdCard.AccessDenied
         other.usable = True
@@ -109,7 +107,7 @@ class CardReader(Item):
     def get_name(self):
         return "Card-Reader"
 
-    def combine_with(self, other):
+    def combine(self, other):
         if other.get_name() != "ID-Card":
             raise CardReader.NotAnIdCard
         other.unique_attributes["key_code"] += 1
@@ -127,7 +125,7 @@ class Note(Item):
     def get_name(self):
         return "Note"
 
-    def combine_with(self, other):
+    def combine(self, other):
         if other.get_name() != "Symbols-Folder":
             raise Item.InvalidCombination
 
@@ -155,7 +153,7 @@ class Telephone(Item):
     def get_name(self):
         return "Telephone"
 
-    def combine_with(self, other):
+    def combine(self, other):
         if other.get_name() != "Telephone-Note":
             raise Item.InvalidCombination
         other.remove_from_parent_container()
@@ -168,10 +166,10 @@ class Flyer(Item):
     def get_name(self):
         return "Flyer"
 
-    def combine_with(self, other):
+    def combine(self, other):
         if other.get_name() != "Door":
             raise Item.InvalidCombination
         key = next(item for item in other.parent_container if item.get_name() == "Key")
         if not key.obtainable:
             raise Key.NotObtainable
-        key.add_to_container(self.parent_container)
+        key.move_to_container(self.parent_container)

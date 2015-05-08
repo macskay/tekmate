@@ -26,7 +26,7 @@ class PlayerUserInterface(object):
         self.surface.fill((255, 255, 255))
         self.surface.blit(self.image, (0, 0))
 
-    def draw_player_to_display(self, display):  # pragma: no cover
+    def draw_player_to_display(self, display):
         display.blit(self.surface, self.get_position())
 
     def create_surface_and_image(self, factor):

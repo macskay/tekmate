@@ -10,10 +10,12 @@ class ItemTestCase(TestCase):
     def setUp(self):
         self.container = []
         self.item = Item(self.container)
-        self.container.append(self.item)
 
     def test_can_create_item(self):
         self.assertEqual("Item", self.item.get_name())
+
+    def test_when_created_item_should_be_inside_parent_container(self):
+        self.assertIn(self.item, self.item.parent_container)
 
     def test_not_obtainable_by_default(self):
         self.assertFalse(self.item.obtainable)
@@ -33,7 +35,7 @@ class ItemTestCase(TestCase):
                 super(MockItem, self).__init__(parent_container)
                 self.called = False
 
-            def combine_with(self, other):
+            def combine(self, other):
                 self.called = other is item
 
         mock_item = MockItem([])
@@ -46,7 +48,7 @@ class ItemTestCase(TestCase):
 
     def test_when_add_to_container_container_should_change(self):
         container_new = []
-        self.item.add_to_container(container_new)
+        self.item.move_to_container(container_new)
         self.assertIn(self.item, container_new)
         self.assertNotIn(self.item, self.container)
 
@@ -60,13 +62,6 @@ class NeedleTestCase(TestCase):
         self.needle = Needle(self.container)
         self.key = Key(self.world_container)
         self.lock = Lock(self.world_container)
-
-        self.append_items_to_respective_containers()
-
-    def append_items_to_respective_containers(self):
-        self.container.append(self.needle)
-        self.world_container.append(self.key)
-        self.world_container.append(self.lock)
 
     def test_can_create_needle(self):
         self.assertEqual("Needle", self.needle.get_name())
@@ -138,7 +133,6 @@ class NoteTestCase(TestCase):
         self.folder = SymbolsFolder([])
         self.player = Player()
         self.note = Note(self.player.bag)
-        self.player.add_item(self.note)
 
     def test_can_create_note(self):
         self.assertEqual("Note", self.note.get_name())
@@ -164,7 +158,6 @@ class TelephoneTestCase(TestCase):
     def setup_player_bag(self):
         self.player = Player()
         self.tel_note = TelephoneNote(self.player.bag)
-        self.player.add_item(self.tel_note)
 
     def test_can_create_telephone(self):
         self.assertEqual(self.telephone.get_name(), "Telephone")
