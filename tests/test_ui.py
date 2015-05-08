@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase, skip
 
-from mock import patch, call
+from mock import patch, call, Mock
 import pygame
 
 from tekmate.game import Player
@@ -44,11 +44,10 @@ class PlayerUITestCase(TestCase):
         expected_argument_for_blit = call(self.player_ui.image, (0, 0))
         self.assertBlitArgumentIs(expected_argument_for_blit)
 
-    @skip("What has to be tested here?")
     def test_when_drawn_player_to_display_expected_argument_should_be_display(self):
-        display = pygame.display.get_surface()
-        self.assertEqual(self.player_ui.draw_player_to_display(display), display)
-
+        mock_display = Mock()
+        self.player_ui.draw_player_to_display(mock_display)
+        mock_display.blit.assert_called_with(self.player_ui.surface, (0, 0))
 
     def assertBlitArgumentIs(self, expected_args):
         returned_argument_list_for_blit = self.player_ui.surface.blit.call_args_list
