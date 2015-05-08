@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from tekmate.game import Player
 from tekmate.items import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
-    Telephone
+    Telephone, Flyer
 
 
 class ItemTestCase(TestCase):
@@ -42,6 +42,12 @@ class ItemTestCase(TestCase):
 
     def test_when_remove_from_container_parent_container_loses_item(self):
         self.item.remove_from_parent_container()
+        self.assertNotIn(self.item, self.container)
+
+    def test_when_add_to_container_container_should_change(self):
+        container_new = []
+        self.item.add_to_container(container_new)
+        self.assertIn(self.item, container_new)
         self.assertNotIn(self.item, self.container)
 
 
@@ -170,3 +176,34 @@ class TelephoneTestCase(TestCase):
     def test_when_combined_with_telephone_note_note_gets_consumed(self):
         self.telephone.combine(self.tel_note)
         self.assertNotIn(self.tel_note, self.player.bag)
+
+
+class FlyerTestCase(TestCase):
+    def setUp(self):
+        self.flyer = Flyer([])
+        self.world_container = []
+        self.key = Key(self.world_container)
+        self.door = Door(self.world_container)
+        self.append_items_to_world_container()
+
+    def append_items_to_world_container(self):
+        self.world_container.append(self.key)
+        self.world_container.append(self.door)
+
+    def test_can_create_flyer(self):
+        self.assertEqual(self.flyer.get_name(), "Flyer")
+
+    def test_when_flyer_combined_other_than_door_raise_exception(self):
+        any_item = Item([])
+        self.assertRaises(Item.InvalidCombination, self.flyer.combine, any_item)
+
+    def test_when_flyer_combined_with_door_and_key_not_obtainable_raise_exception(self):
+        self.assertRaises(Key.NotObtainable, self.flyer.combine, self.door)
+
+    def test_when_flyer_combined_with_door_and_key_obtainable_move_key_in_player_bag(self):
+        player = Player()
+        player.add_item(self.flyer)
+        self.key.obtainable = True
+        self.flyer.combine(self.door)
+        self.assertIn(self.key, player.bag)
+

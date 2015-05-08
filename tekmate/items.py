@@ -32,6 +32,11 @@ class Item(object):
     def remove_from_parent_container(self):
         self.parent_container.remove(self)
 
+    def add_to_container(self, new_container):
+        new_container.append(self)
+        self.remove_from_parent_container()
+        self.parent_container = new_container
+
     def get_name(self):
         return self.name
 
@@ -154,3 +159,19 @@ class Telephone(Item):
         if other.get_name() != "Telephone-Note":
             raise Item.InvalidCombination
         other.remove_from_parent_container()
+
+
+class Flyer(Item):
+    def setup(self):
+        self.obtainable = True
+
+    def get_name(self):
+        return "Flyer"
+
+    def combine_with(self, other):
+        if other.get_name() != "Door":
+            raise Item.InvalidCombination
+        key = next(item for item in other.parent_container if item.get_name() == "Key")
+        if not key.obtainable:
+            raise Key.NotObtainable
+        key.add_to_container(self.parent_container)
