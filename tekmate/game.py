@@ -35,3 +35,8 @@ class Player(object):
         else:
             x = 100
         self.position = (self.position[0] + x, self.position[1])
+
+class NPC(object):
+    def __init__(self):
+        self.position = (0, 0)
+        self.default_response_message = "Hello, I'm an NPC"
