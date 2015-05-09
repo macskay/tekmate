@@ -71,6 +71,11 @@ class Key(Item):
     def get_name(self):
         return "Key"
 
+    def combine(self, other):
+        if not other.get_name() == "Door":
+            raise self.InvalidCombination
+        other.usable = True
+
 
 class IdCard(Item):
     class AccessDenied(Exception):
