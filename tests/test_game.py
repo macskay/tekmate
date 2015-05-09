@@ -7,7 +7,7 @@ except ImportError:  # pragma: no cover
     from mock import Mock, patch
 
 
-from tekmate.game import Player, NPC
+from tekmate.game import Player
 from tekmate.items import Item
 
 
@@ -34,13 +34,22 @@ class PlayerTestCase(TestCase):
     def test_player_position_defaults_at_zero_zero(self):
         self.assertEqual(self.player.position, (0, 0))
 
-    def test_when_moved_player_in_positive_x_position_should_be_hundred_zero(self):
-        self.player.move_player((300, 150))
-        self.assertEqual(self.player.position, (100, 0))
+    def test_when_position_to_move_is_right_of_player_move_player_right(self):
+        self.player.position = (300, 0)
+        mouse_pos = (500, 0)
+        self.player.move(mouse_pos)
+        self.assertEqual(self.player.position, mouse_pos)
 
-    def test_when_moved_player_in_negative_x_position_should_be_minus_hundred_zero(self):
-        self.player.move_player((-100, 150))
-        self.assertEqual(self.player.position, (-100, 0))
+    def test_when_position_to_move_is_left_of_player_move_player_left(self):
+        self.player.position = (300, 0)
+        mouse_pos = (100, 0)
+        self.player.move(mouse_pos)
+        self.assertEqual(self.player.position, mouse_pos)
+
+    def test_when_clicked_not_far_enough_to_move_stay_at_current_position(self):
+        mouse_pos = (30, 0)
+        self.player.move(mouse_pos)
+        self.assertEqual(self.player.position, (0, 0))
 
     def test_when_when_picking_up_not_obtainable_item_raise_exception_and_size_of_bag_should_be_one(self):
         self.assertRaises(Item.NotObtainable, self.player.add_item, self.not_obtainable_item)
@@ -73,18 +82,3 @@ class PlayerTestCase(TestCase):
         self.player.trigger_item_combination(mock_item1, mock_item2)
         mock_item1.combine.assert_called_with(mock_item2)
         mock_item2.combine.assert_called_with(mock_item1)
-
-
-class NPCTestCase(TestCase):
-    def setUp(self):
-        self.npc = NPC()
-
-    def test_can_create_NPC(self):
-        self.assertIsInstance(self.npc, NPC)
-
-    def test_NPCs_default_position_for_zero_zero(self):
-        self.assertEqual(self.npc.position, (0, 0))
-
-    def test_when_talked_to_NPC_return_default_response_message(self):
-        message = "Hello, I'm an NPC"
-        self.assertEqual(self.npc.default_response_message, message)

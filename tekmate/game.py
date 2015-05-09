@@ -1,9 +1,12 @@
 # -*- encoding: utf-8 -*-
-
 from tekmate.items import Item
 
 
 class Player(object):
+    SURFACE_WIDTH = 40
+    SURFACE_HEIGHT = 100
+    SCALING_FACTOR = 2.8
+
     class NoSuchItem(Exception):
         pass
 
@@ -29,14 +32,13 @@ class Player(object):
     def use_item(self, item1):
         return item1.get_use_message()
 
-    def move_player(self, mouse_pos):
-        if mouse_pos[0] < self.position[0]:
-            x = -100
-        else:
-            x = 100
-        self.position = (self.position[0] + x, self.position[1])
+    def move(self, mouse_pos):
+        difference = mouse_pos[0] - self.position[0]
+        if abs(difference) < self.get_surface_proportions()[0]:
+            return
+        new_x = self.position[0] + difference
+        self.position = new_x, self.position[1]
 
-class NPC(object):
-    def __init__(self):
-        self.position = (0, 0)
-        self.default_response_message = "Hello, I'm an NPC"
+    def get_surface_proportions(self):
+        return round(self.SCALING_FACTOR * self.SURFACE_WIDTH), \
+            round(self.SCALING_FACTOR * self.SURFACE_HEIGHT)
