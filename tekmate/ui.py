@@ -8,50 +8,116 @@ import pygame
 from tekmate.game import Player
 
 
-class PlayerUserInterface(object):
+class UI(object):
     class ImageNotFound(Exception):
         pass
 
-    SCALING_FACTOR = 2.8
-
-    def __init__(self):
-        self.player = None
-        self.global_images = None
-        self.surface = None
-        self.image = None
-        self.create_surface_and_image(PlayerUserInterface.SCALING_FACTOR)
-        self.player = Player()
-
-    def render(self):
-        self.surface.fill((255, 255, 255))
-        self.surface.blit(self.image, (0, 0))
-
-    def draw_player_to_display(self, display):
-        display.blit(self.surface, self.get_position())
-
-    def create_surface_and_image(self, factor):
-        self.create_surface_with_factor(factor)
-        self.create_image_with_factor(factor)
-
-    def create_surface_with_factor(self, factor):
-        surface_proportions = (round(factor * 50), round(factor * 100))
-        self.surface = pygame.Surface(surface_proportions)
-        self.surface.convert()
-        self.surface.set_colorkey((0, 128, 128))
-
-    def create_image_with_factor(self, factor):
-        self.image = self.load_image("player", "player.png")
-        img_proportions = (int(round(factor * self.image.get_width())), int(round(factor * self.image.get_height())))
-        self.image = pygame.transform.scale(self.image, img_proportions)
-
-    def load_image(self, folder, name_of_file):
+    @staticmethod
+    def load_image(folder, name_of_file):
         pth = abspath(split(__file__)[0])
         sys.path.append(abspath(join(pth, u"..")))
         fullname = os.path.join(pth, "..", "assets", folder, name_of_file)
         try:
             return pygame.image.load(fullname)
         except:
-            raise PlayerUserInterface.ImageNotFound
+            raise UI.ImageNotFound
+
+
+class PlayerUserInterface(object):
+    PLAYER_IMAGE_OFFSET = (-30, 0)
+
+    def __init__(self):
+        self.player = None
+        self.global_images = None
+        self.surface = None
+        self.image = None
+
+        self.player = Player()
+        self.create_surface_and_image()
+        self.bag_ui = BagUserInterface()
+
+    def render(self):
+        self.surface.fill((255, 255, 255))
+        self.surface.blit(self.image, PlayerUserInterface.PLAYER_IMAGE_OFFSET)
+
+    def draw_player_to_display(self, display):
+        display.blit(self.surface, self.get_position())
+
+    def create_surface_and_image(self):
+        self.create_surface_with_factor()
+        self.create_image_with_factor()
+
+    def create_surface_with_factor(self):
+        surface_proportions = self.player.get_surface_proportions()
+        self.surface = pygame.Surface(surface_proportions)
+        self.surface.convert()
+        self.surface.set_colorkey((0, 128, 128))
+
+    def create_image_with_factor(self):
+        self.image = UI.load_image("player", "player.png")
+        img_proportions = self.get_image_proportions()
+        self.image = pygame.transform.scale(self.image, img_proportions)
 
     def get_position(self):
         return self.player.position
+
+    def get_image_proportions(self):
+        return int(round(Player.SCALING_FACTOR * self.image.get_width())), \
+            int(round(Player.SCALING_FACTOR * self.image.get_height()))
+
+    def move_player(self, mouse_pos):
+        self.player.move(mouse_pos)
+
+    def is_bag_visible(self):
+        return self.bag_ui.visible
+
+    def show_bag(self):
+        self.bag_ui.show_bag(self.player)
+
+    def draw_bag(self, display):
+        self.bag_ui.render(display)
+
+    def hide_bag(self):
+        self.bag_ui.hide_bag()
+
+
+class KeyUserInterface(object):
+    def __init__(self):
+        self.image = UI.load_image("prolog", "key.png")
+        self.surface = pygame.Surface((100, 100))
+        self.position = (0, 0)
+
+
+class BagUserInterface(object):
+    BACKGROUND_COLOR = (0, 255, 0)
+
+    def __init__(self):
+        pygame.font.init()
+        self.visible = False
+        self.surface = pygame.Surface((300, 300))
+        self.items_text = []
+        self.item_font = pygame.font.SysFont("comicsansms", 72)
+
+    def show_bag(self, player):
+        self.visible = True
+        self.build_item_text(player.bag)
+
+    def render(self, display):
+        self.surface.fill(self.BACKGROUND_COLOR)
+        y = 0
+        for text in self.items_text:
+            self.surface.blit(text, (0, y))
+            y += 50
+        display.blit(self.surface, (100, 100))
+
+    def build_item_text(self, bag):
+        for item in bag:
+            item_text = self.item_font.render(item.get_name(), True, (0, 100, 0))
+            self.items_text.append(item_text)
+
+    def is_text_item_empty(self):
+        return len(self.items_text) == 0
+
+    def hide_bag(self):
+        self.visible = False
+        self.items_text = []
