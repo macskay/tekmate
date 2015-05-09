@@ -6,5 +6,6 @@
 
 
 ##Planning:
--Items in bag shall never be used, one can only combine them with items in the world/bag.
--One should always write out the combine-function in the "bag-item"
+
+- Items in bag shall never be used, one can only combine them with items in the world/bag.
+- One should always write out the combine-function in the "bag-item"
