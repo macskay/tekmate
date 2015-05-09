@@ -177,11 +177,8 @@ class FlyerTestCase(TestCase):
         self.world_container = []
         self.key = Key(self.world_container)
         self.door = Door(self.world_container)
-        self.append_items_to_world_container()
 
-    def append_items_to_world_container(self):
-        self.world_container.append(self.key)
-        self.world_container.append(self.door)
+    #TODO: add to commit message: deleted testcase
 
     def test_can_create_flyer(self):
         self.assertEqual(self.flyer.get_name(), "Flyer")
@@ -200,3 +197,19 @@ class FlyerTestCase(TestCase):
         self.flyer.combine(self.door)
         self.assertIn(self.key, player.bag)
 
+
+class KeyTestCase(TestCase):
+    def setUp(self):
+        self.key = Key([])
+
+    def test_can_create_key(self):
+        self.assertIsInstance(self.key, Key)
+
+    def test_when_key_combined_other_than_door_raise_exception(self):
+        any_item = Item([])
+        self.assertRaises(Item.InvalidCombination, self.key.combine, any_item)
+
+    def test_when_key_combined_with_door_and_door_not_usable_make_it_usable(self):
+        door = Door([])
+        self.key.combine(door)
+        self.assertEqual(door.usable, True)
