@@ -137,7 +137,7 @@ class CardReaderTestCase(TestCase):
 
     def test_when_combined_with_other_than_a_card_raise_exception(self):
         any_item = Item([])
-        self.assertRaises(CardReader.NotAnIdCard, self.reader.combine, any_item)
+        self.assertRaises(Item.InvalidCombination, self.reader.combine, any_item)
 
 
 class NoteTestCase(TestCase):
