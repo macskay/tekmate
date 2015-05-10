@@ -2,8 +2,8 @@
 from unittest import TestCase
 
 from tekmate.game import Player
-from tekmate.items import Item, Needle, Lock, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
-    Telephone, Flyer
+from tekmate.items import Item, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
+    Telephone, Paperclip, Letter
 
 
 class ItemTestCase(TestCase):
@@ -22,6 +22,11 @@ class ItemTestCase(TestCase):
 
     def test_not_usable_by_default(self):
         self.assertFalse(self.item.usable)
+
+    def test_looked_at_door_variable_status(self):
+        self.assertEqual(self.item.looked_at, False)
+        self.item.looked_at = True
+        self.assertEqual(self.item.looked_at, True)
 
     def test_when_parent_container_is_none_AssertionError_is_raised(self):
         with self.assertRaises(AssertionError):
@@ -53,31 +58,38 @@ class ItemTestCase(TestCase):
         self.assertNotIn(self.item, self.container)
 
 
-class NeedleTestCase(TestCase):
-
+class PaperclipTestCase(TestCase):
     def setUp(self):
         self.container = []
         self.world_container = []
-
-        self.needle = Needle(self.container)
+        self.paperclip = Paperclip(self.container)
         self.key = Key(self.world_container)
-        self.lock = Lock(self.world_container)
+        self.door = Door(self.world_container)
+        self.door.unique_attributes["combined_with_letter"] = True
 
-    def test_can_create_needle(self):
-        self.assertEqual("Needle", self.needle.get_name())
+    def test_can_create_paperclip(self):
+        self.assertEqual("Paperclip", self.paperclip.get_name())
 
-    def test_when_combined_with_not_a_lock_raise_invalid_combination(self):
+    def test_when_combined_with_other_than_door_raise_invalid_combination(self):
         obj = Item([])
         with self.assertRaises(Item.InvalidCombination):
-            self.needle.combine(obj)
+            self.paperclip.combine(obj)
 
-    def test_gets_consumed_when_combined_correctly(self):
-        self.needle.combine(self.lock)
-        self.assertNotIn(self.needle, self.container)
+    def test_gets_consumed_when_combined_correctly_with_door(self):
+        self.paperclip.combine(self.door)
+        self.assertNotIn(self.paperclip, self.container)
 
     def test_when_combined_correctly_key_is_obtainable(self):
-        self.needle.combine(self.lock)
+        self.paperclip.combine(self.door)
         self.assertTrue(self.key.obtainable)
+
+    def test_when_combining_with_door_and_doors_combined_with_letter_is_false_raise_exception(self):
+        self.door.unique_attributes["combined_with_letter"] = False
+        self.assertRaises(Item.ConditionNotMet, self.paperclip.combine, self.door)
+
+    def test_when_combined_with_door_correctly_set_combined_with_paperclip_True(self):
+        self.paperclip.combine(self.door)
+        self.assertTrue(self.door.unique_attributes["combined_with_paperclip"])
 
 
 class IdCardTestCase(TestCase):
@@ -171,34 +183,41 @@ class TelephoneTestCase(TestCase):
         self.assertNotIn(self.tel_note, self.player.bag)
 
 
-class FlyerTestCase(TestCase):
+class LetterTestCase(TestCase):
     def setUp(self):
-        self.flyer = Flyer([])
+        self.container = []
+        self.letter = Letter(self.container)
         self.world_container = []
         self.key = Key(self.world_container)
         self.door = Door(self.world_container)
 
-    def test_can_create_flyer(self):
-        self.assertEqual(self.flyer.get_name(), "Flyer")
+    def test_can_create_letter(self):
+        self.assertEqual(self.letter.get_name(), "Letter")
 
-    def test_when_flyer_combined_other_than_door_raise_exception(self):
+    def test_when_letter_combined_other_than_door_raise_exception(self):
         any_item = Item([])
-        self.assertRaises(Item.InvalidCombination, self.flyer.combine, any_item)
+        self.assertRaises(Item.InvalidCombination, self.letter.combine, any_item)
 
-    def test_when_flyer_combined_with_door_and_key_not_obtainable_raise_exception(self):
-        self.assertRaises(Key.NotObtainable, self.flyer.combine, self.door)
+    def test_gets_consumed_when_combined_correctly_with_door(self):
+        self.door.looked_at = True
+        self.letter.combine(self.door)
+        self.assertNotIn(self.letter, self.container)
 
-    def test_when_flyer_combined_with_door_and_key_obtainable_move_key_in_player_bag(self):
-        player = Player()
-        player.add_item(self.flyer)
-        self.key.obtainable = True
-        self.flyer.combine(self.door)
-        self.assertIn(self.key, player.bag)
+    def test_when_letter_combined_with_door_and_door_looked_at_is_false_raise_exception(self):
+        self.assertRaises(Item.ConditionNotMet, self.letter.combine, self.door)
+
+    def test_doors_combined_with_letter(self):
+        self.assertFalse(self.door.unique_attributes["combined_with_letter"])
+        self.door.looked_at = True
+        self.letter.combine(self.door)
+        self.assertTrue(self.door.unique_attributes["combined_with_letter"])
 
 
 class KeyTestCase(TestCase):
     def setUp(self):
-        self.key = Key([])
+        self.container = []
+        self.key = Key(self.container)
+        self.door = Door([])
 
     def test_can_create_key(self):
         self.assertIsInstance(self.key, Key)
@@ -208,9 +227,13 @@ class KeyTestCase(TestCase):
         self.assertRaises(Item.InvalidCombination, self.key.combine, any_item)
 
     def test_when_key_combined_with_door_and_door_not_usable_make_it_usable(self):
-        door = Door([])
-        self.key.combine(door)
-        self.assertEqual(door.usable, True)
+        self.key.combine(self.door)
+        self.assertEqual(self.door.usable, True)
+
+    def test_gets_consumed_when_combined_correctly_with_door(self):
+        self.door.unique_attributes["combined_with_paperclip"] = True
+        self.key.combine(self.door)
+        self.assertNotIn(self.key, self.container)
 
 
 class TelephoneNoteTestCase(TestCase):
