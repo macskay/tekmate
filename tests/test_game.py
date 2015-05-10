@@ -85,4 +85,3 @@ class PlayerTestCase(TestCase):
         self.player.trigger_item_combination(mock_item1, mock_item2)
         mock_item1.combine.assert_called_with(mock_item2)
         mock_item2.combine.assert_called_with(mock_item1)
-

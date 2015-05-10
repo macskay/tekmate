@@ -51,7 +51,7 @@ class PlayerUI(object):
         surface_proportions = self.player.get_surface_proportions()
         self.surface = pygame.Surface(surface_proportions)
         self.surface.convert()
-        #self.surface.set_colorkey((0, 128, 128))
+        self.surface.set_colorkey((0, 128, 128))
 
     def create_image_with_factor(self):
         self.image = UI.load_image("player", "player.png")

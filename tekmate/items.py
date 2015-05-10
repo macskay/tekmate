@@ -55,8 +55,8 @@ class Item(object):
 
 
 class Paperclip(Item):
-    def get_name(self):
-        return "Paperclip"
+    def setup(self):
+        self.name = "Paperclip"
 
     def combine(self, other):
         if other.get_name() != "Door":
@@ -69,10 +69,9 @@ class Paperclip(Item):
         other.unique_attributes["combined_with_paperclip"] = True
 
 
-
 class Key(Item):
-    def get_name(self):
-        return "Key"
+    def setup(self):
+        self.name = "Key"
 
     def combine(self, other):
         if not other.get_name() == "Door":
@@ -88,9 +87,7 @@ class IdCard(Item):
     def setup(self):
         self.unique_attributes["key_code"] = 0
         self.obtainable = True
-
-    def get_name(self):
-        return "ID-Card"
+        self.name = "ID-Card"
 
     def combine(self, other):
         if self.has_insufficient_permissions(other):
@@ -105,35 +102,23 @@ class Door(Item):
     def setup(self):
         self.unique_attributes["access_code"] = 0
         self.unique_attributes["combined_with_letter"] = False
-
-    def get_name(self):
-        return "Door"
+        self.name = "Door"
 
 
 class CardReader(Item):
-    class NotAnIdCard(Exception):
-        pass
-
-    def get_name(self):
-        return "Card-Reader"
+    def setup(self):
+        self.name = "Card-Reader"
 
     def combine(self, other):
         if other.get_name() != "ID-Card":
-            raise CardReader.NotAnIdCard
+            raise Item.InvalidCombination
         other.unique_attributes["key_code"] += 1
-
-
-class SymbolsFolder(Item):
-    def get_name(self):
-        return "Symbols-Folder"
 
 
 class Note(Item):
     def setup(self):
         self.obtainable = True
-
-    def get_name(self):
-        return "Note"
+        self.name = "Note"
 
     def combine(self, other):
         if other.get_name() != "Symbols-Folder":
@@ -154,17 +139,15 @@ class Note(Item):
 class TelephoneNote(Item):
     def setup(self):
         self.obtainable = True
-
-    def get_name(self):
-        return "Telephone-Note"
+        self.name = "Telephone-Note"
 
     def get_look_at_message(self):
         return "This is a Telephone Note"
 
 
 class Telephone(Item):
-    def get_name(self):
-        return "Telephone"
+    def setup(self):
+        self.name = "Telephone"
 
     def combine(self, other):
         if other.get_name() != "Telephone-Note":
@@ -175,9 +158,7 @@ class Telephone(Item):
 class Letter(Item):
     def setup(self):
         self.obtainable = True
-
-    def get_name(self):
-        return "Letter"
+        self.name = "Letter"
 
     def combine(self, other):
         if other.get_name() != "Door":
@@ -187,3 +168,7 @@ class Letter(Item):
         self.remove_from_parent_container()
         other.unique_attributes["combined_with_letter"] = True
 
+
+class SymbolsFolder(Item):
+    def setup(self):
+        self.name = "Symbols-Folder"

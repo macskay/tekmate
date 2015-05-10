@@ -3,7 +3,6 @@ import pygame
 from taz.game import Scene, Game
 
 from tekmate.ui import PlayerUI, NoteUI
-from tekmate.items import IdCard
 
 
 class WorldScene(Scene):
@@ -90,7 +89,6 @@ class WorldScene(Scene):
 
     def render_player(self):
         self.player_ui.render(self.display)
-        pass
 
     def add_item_if_clicked_on(self, pos):
         for item_ui in self.items_in_ui:

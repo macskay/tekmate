@@ -154,7 +154,3 @@ class NoteUITestCase(TestCase):
         self.note_ui.render(mock_display)
         mock_surface.blit.assert_called_with(mock_image, (0, 0))
         mock_display.blit.assert_called_with(mock_surface, (300, 100))
-
-
-
-
