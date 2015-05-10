@@ -2,8 +2,7 @@
 import pygame
 from taz.game import Scene, Game
 
-from tekmate.ui import PlayerUI, NoteUI
-
+from tekmate.ui import PlayerUI, NoteUI, ContextMenuUI
 
 class WorldScene(Scene):
     def __init__(self, ident):
@@ -11,12 +10,14 @@ class WorldScene(Scene):
         self.player_ui = None
         self.note_ui = None
         self.display = None
+        self.context_menu = None
 
         self.world_container = []
         self.items_in_ui = []
 
     def initialize_scene(self):
         self.player_ui = PlayerUI()
+        self.context_menu = ContextMenuUI()
         self.add_item_to_ui(NoteUI(self.world_container))
 
     def update(self):  # pragma: no cover  (This is only because of all the branches, they will get tested eventually)
@@ -24,8 +25,15 @@ class WorldScene(Scene):
             if event.type == pygame.QUIT or self.escape_key_pressed(event):
                 raise Game.GameExitException
             elif self.left_mouse_button_pressed(event):
-                self.move_player(event.pos, self.display)
-                self.add_item_if_clicked_on(event.pos)
+                if not self.context_menu.visible:
+                    self.move_player(event.pos, self.display)
+                    self.add_item_if_clicked_on(event.pos)
+                else:
+                    self.interact_with_context_menu(event.pos)
+                    #  self.context_menu.visible = False
+            elif self.right_mouse_button_pressed(event):
+                self.change_context_menu_if_clicked_on_item(event.pos)
+                self.context_menu.show(event.pos, self.display)
             elif self.i_pressed(event):
                 self.handle_bag()
 
@@ -38,6 +46,9 @@ class WorldScene(Scene):
 
         if self.player_ui.is_bag_visible():
             self.draw_bag()
+
+        if self.is_context_menu_visible():
+            self.render_context_menu()
 
         pygame.display.flip()
 
@@ -55,6 +66,9 @@ class WorldScene(Scene):
 
     def left_mouse_button_pressed(self, event):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
+
+    def right_mouse_button_pressed(self, event):
+        return event.type == pygame.MOUSEBUTTONDOWN and event.button == 3
 
     def i_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_i
@@ -101,3 +115,27 @@ class WorldScene(Scene):
 
     def add_item_to_player(self, item):
         self.player_ui.add_item(item)
+
+    def is_context_menu_visible(self):
+        return self.context_menu.visible
+
+    def render_context_menu(self):
+        self.context_menu.render(self.display)
+
+    def interact_with_context_menu(self, pos):
+        if self.is_clicked_on_item(self.context_menu, pos):
+            menu_clicked = self.context_menu.interact_with_item(pos)
+            self.player_ui.interact(menu_clicked)
+        else:
+            self.context_menu.visible = False
+
+    def change_context_menu_if_clicked_on_item(self, pos):
+        menu_style = ContextMenuUI.CONTEXT_MENU_DEFAULT
+        for item_ui in self.items_in_ui:
+            if self.is_clicked_on_item(item_ui, pos):
+                if item_ui.item.usable:
+                    menu_style = ContextMenuUI.CONTEXT_MENU_USABLE_ITEM
+                elif item_ui.item.obtainable:
+                    menu_style = ContextMenuUI.CONTEXT_MENU_OBTAINABLE_ITEM
+        self.context_menu.create_menu(menu_style)
+

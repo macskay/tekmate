@@ -83,6 +83,8 @@ class PlayerUI(object):
     def add_item(self, item):
         self.player.add_item(item)
 
+    def interact(self, menu_clicked):
+        print(menu_clicked)
 
 class BagUI(object):
     BACKGROUND_COLOR = (0, 51, 0)
@@ -97,6 +99,7 @@ class BagUI(object):
     def show_bag(self, player):
         self.visible = True
         self.build_item_text(player.bag)
+
 
     def render(self, display):
         self.surface.fill(self.BACKGROUND_COLOR)
@@ -117,6 +120,60 @@ class BagUI(object):
     def hide_bag(self):
         self.visible = False
         self.items_text = []
+
+
+class ContextMenuUI(object):
+    BACKGROUND_COLOR = (190, 190, 190)
+    CONTEXT_MENU_DEFAULT = ["Walk"]
+    CONTEXT_MENU_OBTAINABLE_ITEM = ["Look at", "Take"]
+    CONTEXT_MENU_USABLE_ITEM = ["Look at", "Use"]
+    CONTEXT_MENU_BAG_ITEM = ["Inspect", "Select"]
+
+    def __init__(self):
+        self.visible = False
+        self.menu_items = None
+        self.surface = None
+        self.create_menu(self.CONTEXT_MENU_DEFAULT)
+        self.font = pygame.font.SysFont("arial", 25)
+        self.position = (0, 0)
+
+    def create_menu(self, menu_style):
+        self.menu_items = menu_style
+        height = len(menu_style) * 30
+        self.surface = pygame.Surface((150, height))
+
+    def render(self, display):
+        self.surface.fill(self.BACKGROUND_COLOR)
+        self.render_item_text()
+        display.blit(self.surface, self.position)
+
+    def render_item_text(self):
+        y = 0
+        for item in self.menu_items:
+            text = self.font.render(item, True, (50, 50, 50))
+            self.surface.blit(text, (0, y))
+            y += 30
+
+    def show(self, pos, display):
+        self.visible = True
+        self.position = pos
+
+        if self.is_mouse_pos_clicked_is_furthest_right(pos, display):
+            self.position = (self.position[0]-self.surface.get_width(), self.position[1])
+
+    def is_mouse_pos_clicked_is_furthest_right(self, pos, display):
+        return display.get_width() - pos[0] < self.surface.get_width()
+
+    def hide(self):
+        self.visible = False
+
+    def interact_with_item(self, pos):
+        item = self.get_item_clicked(pos)
+        return item
+
+    def get_item_clicked(self, pos):
+        item_number = int((pos[1] - self.position[1])/30)
+        return self.menu_items[item_number]
 
 
 class NoteUI(object):

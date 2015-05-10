@@ -4,7 +4,7 @@ from unittest import TestCase, skip
 from mock import patch, call, Mock
 from pygame import Surface, display
 
-from tekmate.ui import UI, PlayerUI, BagUI, NoteUI
+from tekmate.ui import UI, PlayerUI, BagUI, NoteUI, ContextMenuUI
 from tekmate.game import Player
 from tekmate.items import Note, IdCard
 
@@ -124,8 +124,6 @@ class BagUITestCase(TestCase):
         self.assertEqual(len(self.bag_ui.items_text), 0)
 
 
-
-
 class NoteUITestCase(TestCase):
     def setUp(self):
         self.note_ui = NoteUI([])
@@ -154,3 +152,42 @@ class NoteUITestCase(TestCase):
         self.note_ui.render(mock_display)
         mock_surface.blit.assert_called_with(mock_image, (0, 0))
         mock_display.blit.assert_called_with(mock_surface, (300, 100))
+
+
+class ContextMenuUITestCase(TestCase):
+    def setUp(self):
+        menu_items = ["One", "Two", "Three"]
+        self.context_menu = ContextMenuUI(menu_items)
+
+    def test_visible_defaults_to_false(self):
+        self.assertFalse(self.context_menu.visible)
+
+    def test_when_creating_menu_items_container_should_not_be_none(self):
+        self.assertIsNotNone(self.context_menu.menu_items)
+
+    def test_when_creating_and_menu_items_are_none_raise_exception(self):
+        with self.assertRaises(AssertionError):
+            ContextMenuUI(None)
+
+    def test_when_creating_surface_should_not_be_none(self):
+        self.assertIsNotNone(self.context_menu.surface)
+
+    def test_when_creating_font_should_be_initialised_and_not_none(self):
+        self.assertIsNotNone(self.context_menu.font)
+
+    def test_when_three_items_in_list_height_should_be_three_times_thirty_pixels(self):
+        self.assertEqual(self.context_menu.surface.get_height(), 90)
+
+    def test_when_should_drawn_then_surface_is_filled_with_background_color(self):
+        mock_surface = Mock()
+        self.context_menu.surface = mock_surface
+        self.context_menu.render(Mock())
+        mock_surface.fill.assert_called_with(ContextMenuUI.BACKGROUND_COLOR)
+
+    def test_when_context_menu_should_be_shown_visible_is_set_true(self):
+        self.context_menu.show((-10, 0))
+        self.assertTrue(self.context_menu.visible)
+
+    def test_when_context_menu_should_be_hidden_visible_is_set_false(self):
+        self.context_menu.hide()
+        self.assertFalse(self.context_menu.visible)
