@@ -6,6 +6,7 @@ from os.path import abspath, split, join
 import pygame
 
 from tekmate.game import Player
+from tekmate.items import TelephoneNote
 
 
 class UI(object):
@@ -23,7 +24,7 @@ class UI(object):
             raise UI.ImageNotFound
 
 
-class PlayerUserInterface(object):
+class PlayerUI(object):
     PLAYER_IMAGE_OFFSET = (-30, 0)
 
     def __init__(self):
@@ -34,13 +35,12 @@ class PlayerUserInterface(object):
 
         self.player = Player()
         self.create_surface_and_image()
-        self.bag_ui = BagUserInterface()
+        self.bag_ui = BagUI()
 
-    def render(self):
+    def render(self, display):
         self.surface.fill((255, 255, 255))
-        self.surface.blit(self.image, PlayerUserInterface.PLAYER_IMAGE_OFFSET)
+        self.surface.blit(self.image, PlayerUI.PLAYER_IMAGE_OFFSET)
 
-    def draw_player_to_display(self, display):
         display.blit(self.surface, self.get_position())
 
     def create_surface_and_image(self):
@@ -51,7 +51,7 @@ class PlayerUserInterface(object):
         surface_proportions = self.player.get_surface_proportions()
         self.surface = pygame.Surface(surface_proportions)
         self.surface.convert()
-        self.surface.set_colorkey((0, 128, 128))
+        #self.surface.set_colorkey((0, 128, 128))
 
     def create_image_with_factor(self):
         self.image = UI.load_image("player", "player.png")
@@ -65,8 +65,8 @@ class PlayerUserInterface(object):
         return int(round(Player.SCALING_FACTOR * self.image.get_width())), \
             int(round(Player.SCALING_FACTOR * self.image.get_height()))
 
-    def move_player(self, mouse_pos):
-        self.player.move(mouse_pos)
+    def move_player(self, mouse_pos, display):
+        self.player.move(mouse_pos, display)
 
     def is_bag_visible(self):
         return self.bag_ui.visible
@@ -80,21 +80,17 @@ class PlayerUserInterface(object):
     def hide_bag(self):
         self.bag_ui.hide_bag()
 
-
-class KeyUserInterface(object):
-    def __init__(self):
-        self.image = UI.load_image("prolog", "key.png")
-        self.surface = pygame.Surface((100, 100))
-        self.position = (0, 0)
+    def add_item(self, item):
+        self.player.add_item(item)
 
 
-class BagUserInterface(object):
-    BACKGROUND_COLOR = (0, 255, 0)
+class BagUI(object):
+    BACKGROUND_COLOR = (0, 51, 0)
 
     def __init__(self):
         pygame.font.init()
         self.visible = False
-        self.surface = pygame.Surface((300, 300))
+        self.surface = pygame.Surface((800, 500))
         self.items_text = []
         self.item_font = pygame.font.SysFont("comicsansms", 72)
 
@@ -121,3 +117,16 @@ class BagUserInterface(object):
     def hide_bag(self):
         self.visible = False
         self.items_text = []
+
+
+class NoteUI(object):
+    def __init__(self, parent_container):
+        assert parent_container is not None
+        self.item = TelephoneNote(parent_container)
+        self.surface = pygame.Surface((150, 200))
+        self.image = UI.load_image("prolog", "letter.png")
+        self.position = (300, 100)
+
+    def render(self, display):
+        self.surface.blit(self.image, (0, 0))
+        display.blit(self.surface, self.position)

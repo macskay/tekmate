@@ -6,7 +6,7 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     from mock import Mock, patch
 
-
+from pygame import Surface
 from tekmate.game import Player
 from tekmate.items import Item
 
@@ -37,19 +37,22 @@ class PlayerTestCase(TestCase):
     def test_when_position_to_move_is_right_of_player_move_player_right(self):
         self.player.position = (300, 0)
         mouse_pos = (500, 0)
-        self.player.move(mouse_pos)
+        self.player.move(mouse_pos, Surface((1920, 1080)))
         self.assertEqual(self.player.position, mouse_pos)
 
     def test_when_position_to_move_is_left_of_player_move_player_left(self):
         self.player.position = (300, 0)
         mouse_pos = (100, 0)
-        self.player.move(mouse_pos)
+        self.player.move(mouse_pos, Surface((1920, 1080)))
         self.assertEqual(self.player.position, mouse_pos)
 
-    def test_when_clicked_not_far_enough_to_move_stay_at_current_position(self):
-        mouse_pos = (30, 0)
-        self.player.move(mouse_pos)
-        self.assertEqual(self.player.position, (0, 0))
+    def test_when_clicked_to_move_right_and_x_pos_is_further_than_screen_width_minus_player_surface_width_force_x(self):
+        mock_surface = Surface((640, 480))
+        mouse_pos = (600, 0)
+
+        self.player.move(mouse_pos, mock_surface)
+        expected_x = int(mock_surface.get_width() - (self.player.SCALING_FACTOR*self.player.SURFACE_WIDTH))
+        self.assertEqual(self.player.position, (expected_x, 0))
 
     def test_when_when_picking_up_not_obtainable_item_raise_exception_and_size_of_bag_should_be_one(self):
         self.assertRaises(Item.NotObtainable, self.player.add_item, self.not_obtainable_item)
@@ -82,3 +85,4 @@ class PlayerTestCase(TestCase):
         self.player.trigger_item_combination(mock_item1, mock_item2)
         mock_item1.combine.assert_called_with(mock_item2)
         mock_item2.combine.assert_called_with(mock_item1)
+

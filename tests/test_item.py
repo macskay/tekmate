@@ -178,8 +178,6 @@ class FlyerTestCase(TestCase):
         self.key = Key(self.world_container)
         self.door = Door(self.world_container)
 
-    #TODO: add to commit message: deleted testcase
-
     def test_can_create_flyer(self):
         self.assertEqual(self.flyer.get_name(), "Flyer")
 
@@ -213,3 +211,14 @@ class KeyTestCase(TestCase):
         door = Door([])
         self.key.combine(door)
         self.assertEqual(door.usable, True)
+
+
+class TelephoneNoteTestCase(TestCase):
+    def setUp(self):
+        self.tel_note = TelephoneNote([])
+
+    def test_can_create_tel_note(self):
+        self.assertEqual(self.tel_note.get_name(), "Telephone-Note")
+
+    def test_get_look_at_message_should_be_telephone_note(self):
+        self.assertEqual(self.tel_note.get_look_at_message(), "This is a Telephone Note")

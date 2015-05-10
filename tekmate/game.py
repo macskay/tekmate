@@ -32,13 +32,23 @@ class Player(object):
     def use_item(self, item1):
         return item1.get_use_message()
 
-    def move(self, mouse_pos):
-        difference = mouse_pos[0] - self.position[0]
-        if abs(difference) < self.get_surface_proportions()[0]:
-            return
-        new_x = self.position[0] + difference
+    def move(self, mouse_pos, display):
+        if self.is_mouse_pos_clicked_is_furthest_right(mouse_pos, display):
+            new_x = display.get_width() - self.get_surface_width()
+        else:
+            difference = mouse_pos[0] - self.position[0]
+            new_x = self.position[0] + difference
         self.position = new_x, self.position[1]
 
     def get_surface_proportions(self):
-        return round(self.SCALING_FACTOR * self.SURFACE_WIDTH), \
-            round(self.SCALING_FACTOR * self.SURFACE_HEIGHT)
+        return round(self.get_surface_width()), \
+            round(self.get_surface_height())
+
+    def is_mouse_pos_clicked_is_furthest_right(self, pos, display):
+        return display.get_width() - pos[0] < self.get_surface_width()
+
+    def get_surface_width(self):
+        return self.SURFACE_WIDTH*self.SCALING_FACTOR
+
+    def get_surface_height(self):
+        return self.SCALING_FACTOR*self.SURFACE_HEIGHT

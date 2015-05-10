@@ -10,6 +10,7 @@ import pygame
 from taz.game import Game
 
 from tekmate.scenes import WorldScene
+from tekmate.ui import NoteUI
 
 
 class WorldSceneUpdateTestCase(TestCase):
@@ -50,8 +51,7 @@ class WorldSceneUpdateTestCase(TestCase):
         self.assertTrue(self.scene.is_bag_visible())
 
 
-
-class WorldSceneSetupTestCase(TestCase):
+class WorldSceneTestCase(TestCase):
     def setUp(self):
         pygame.display.init()
         pygame.display.set_mode((640, 480))
@@ -72,6 +72,13 @@ class WorldSceneSetupTestCase(TestCase):
             type = pygame.MOUSEBUTTONDOWN
             pygame.key = None
         return MockEvent()
+
+    def create_item_click(self, pos, item_pos):
+        item_ui = NoteUI([])
+        item_ui.position = item_pos
+        self.world_scene.player_ui = Mock()
+        self.world_scene.add_item_to_ui(item_ui)
+        self.world_scene.add_item_if_clicked_on(pos)
 
     def test_when_mouse_button_is_pressed_function_should_return_true(self):
         event = self.create_mouse_mock()
@@ -123,3 +130,52 @@ class WorldSceneSetupTestCase(TestCase):
         self.world_scene.initialize_scene()
         self.world_scene.hide_bag()
         self.assertFalse(self.world_scene.is_bag_visible())
+
+    def test_move_player_should_call_player_uis_move_function(self):
+        mock_player_ui = Mock()
+        self.world_scene.player_ui = mock_player_ui
+        self.world_scene.move_player(None, None)
+        mock_player_ui.move_player.assert_called_with(None, None)
+
+    def test_show_bag_if_handle_bag_is_called_and_not_bag_visible(self):
+        self.world_scene.initialize_scene()
+        self.world_scene.handle_bag()
+        self.assertTrue(self.world_scene.is_bag_visible())
+
+    def test_hide_bag_if_handle_bag_is_called_and_bag_visible(self):
+        self.world_scene.initialize_scene()
+        self.world_scene.show_bag()
+        self.world_scene.handle_bag()
+        self.assertFalse(self.world_scene.is_bag_visible())
+
+    def test_when_called_render_items_every_item_sjould_be_rendered(self):
+        mock_item_list = [Mock()]
+        self.world_scene.items_in_ui = mock_item_list
+        self.world_scene.display = None
+        self.world_scene.render_items()
+        mock_item_list[0].render.assert_called_with(None)
+
+    def test_when_called_render_player_player_uis_render_function_should_be_called(self):
+        mock_player_ui = Mock()
+        self.world_scene.player_ui = mock_player_ui
+        self.world_scene.render_player()
+        mock_player_ui.render.assert_called_with(self.world_scene.display)
+
+    def test_when_clicked_on_an_item_remove_from_item_ui_list(self):
+        mouse = (10, 10)
+        pos = (0, 0)
+        self.create_item_click(mouse, pos)
+        self.assertEqual(len(self.world_scene.items_in_ui), 0)
+
+    def test_when_clicked_but_not_on_an_item_leave_the_item_on_screen(self):
+        mouse = (0, 0)
+        pos = (100, 100)
+        self.create_item_click(mouse, pos)
+        self.assertEqual(len(self.world_scene.items_in_ui), 1)
+
+    def test_when_clicked_on_an_item_return_true_from_is_clicked_on_item_otherwise_false(self):
+        item_ui = NoteUI([])
+        item_ui.position = (100, 100)
+        self.assertFalse(self.world_scene.is_clicked_on_item(item_ui, (0, 0)))
+        item_ui.position = (0, 0)
+        self.assertTrue(self.world_scene.is_clicked_on_item(item_ui, (10, 10)))
