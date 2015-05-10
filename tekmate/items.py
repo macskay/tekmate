@@ -153,6 +153,9 @@ class TelephoneNote(Item):
     def get_name(self):
         return "Telephone-Note"
 
+    def get_look_at_message(self):
+        return "This is a Telephone Note"
+
 
 class Telephone(Item):
     def get_name(self):
