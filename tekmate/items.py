@@ -11,6 +11,9 @@ class Item(object):
     class InvalidCombination(Exception):
         pass
 
+    class ConditionNotMet(Exception):
+        pass
+
     def __init__(self, parent_container):
         assert parent_container is not None
         parent_container.append(self)
@@ -18,6 +21,7 @@ class Item(object):
         self.obtainable = False
         self.parent_container = parent_container
         self.name = "Item"
+        self.looked_at = False
         self.unique_attributes = {}
         self.setup()
 
@@ -50,21 +54,20 @@ class Item(object):
         return "This is the Item-Description"
 
 
-class Needle(Item):
+class Paperclip(Item):
     def get_name(self):
-        return "Needle"
+        return "Paperclip"
 
     def combine(self, other):
-        if other.get_name() != "Lock":
+        if other.get_name() != "Door":
             raise Item.InvalidCombination
+        if not other.unique_attributes["combined_with_letter"]:
+            raise Item.ConditionNotMet
         self.remove_from_parent_container()
         key_item = next((item for item in other.parent_container if item.get_name() == "Key"))
         key_item.obtainable = True
+        other.unique_attributes["combined_with_paperclip"] = True
 
-
-class Lock(Item):
-    def get_name(self):
-        return "Lock"
 
 
 class Key(Item):
@@ -75,6 +78,7 @@ class Key(Item):
         if not other.get_name() == "Door":
             raise self.InvalidCombination
         other.usable = True
+        self.remove_from_parent_container()
 
 
 class IdCard(Item):
@@ -100,6 +104,7 @@ class IdCard(Item):
 class Door(Item):
     def setup(self):
         self.unique_attributes["access_code"] = 0
+        self.unique_attributes["combined_with_letter"] = False
 
     def get_name(self):
         return "Door"
@@ -164,17 +169,18 @@ class Telephone(Item):
         other.remove_from_parent_container()
 
 
-class Flyer(Item):
+class Letter(Item):
     def setup(self):
         self.obtainable = True
 
     def get_name(self):
-        return "Flyer"
+        return "Letter"
 
     def combine(self, other):
         if other.get_name() != "Door":
             raise Item.InvalidCombination
-        key = next(item for item in other.parent_container if item.get_name() == "Key")
-        if not key.obtainable:
-            raise Key.NotObtainable
-        key.move_to_container(self.parent_container)
+        if not other.looked_at:
+            raise Item.ConditionNotMet
+        self.remove_from_parent_container()
+        other.unique_attributes["combined_with_letter"] = True
+
