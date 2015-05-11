@@ -11,6 +11,7 @@ from taz.game import Game
 
 from tekmate.scenes import WorldScene
 from tekmate.ui import NoteUI, ContextMenuUI
+from tekmate.items import Item
 
 
 class WorldSceneUpdateTestCase(TestCase):
@@ -254,27 +255,6 @@ class WorldSceneTestCase(TestCase):
         self.world_scene.interact_with_context_menu((10000, 10000))
         self.assertFalse(self.world_scene.context_menu.visible)
 
-    def test_when_right_clicked_on_usable_item_open_menu_usable_context_menu(self):
-        mock_context = self.create_setup_click_context_menu()
-
-        self.world_scene.change_context_menu_if_clicked_on_item((10, 10))
-        mock_context.create_menu.assert_called_with(ContextMenuUI.CONTEXT_MENU_ITEM)
-
-    def test_when_right_clicked_on_obtainable_item_open_menu_obtainable_context_menu(self):
-        mock_context = self.create_setup_click_context_menu()
-        self.world_scene.change_context_menu_if_clicked_on_item((10, 10))
-        mock_context.create_menu.assert_called_with(ContextMenuUI.CONTEXT_MENU_ITEM)
-
-    def test_when_right_clicked_with_bag_open_and_inside_bag_open_context_menu_bag_item(self):
-        self.world_scene.initialize_scene()
-        self.world_scene.show_bag()
-
-        mock_context = self.mock_context_menu()
-        note_ui = self.setup_note_for_clicked_context_menu()
-
-        self.world_scene.change_context_menu_if_clicked_on_item((100, 100))
-        mock_context.create_menu.assert_called_with(ContextMenuUI.CONTEXT_MENU_BAG_ITEM)
-
     @patch("tekmate.scenes.WorldScene.move_player")
     def test_when_context_menu_is_not_visible_handle_left_mouse_button_should_move_player_or_add_item(self, mock_move_player):
         self.world_scene.initialize_scene()
@@ -300,6 +280,37 @@ class WorldSceneTestCase(TestCase):
         self.world_scene.open_context_menu((10, 10))
         mock_show.assert_called_with((10, 10))
 
+    @patch("tekmate.scenes.WorldScene.clicked_on")
+    def test_when_item_right_clicked_update_context_menu_to_item_menu(self, mock_clicked_on):
+        mock_clicked_on.return_value = True
+        mock_context_menu = Mock()
 
+        self.world_scene.context_menu = mock_context_menu
+        self.world_scene.items_in_ui = [1, 2]
+        self.world_scene.update_context_menu_to_item_menu(None)
 
+        mock_context_menu.create_menu.assert_called_with(ContextMenuUI.CONTEXT_MENU_ITEM)
+
+    def test_when_is_bag_visible_is_called_bag_visibility_should_be_called(self):
+        self.world_scene.initialize_scene()
+        self.assertFalse(self.world_scene.is_bag_visible())
+
+    def test_when_is_bag_empty_called_default_return_true(self):
+        self.world_scene.initialize_scene()
+        self.assertTrue(self.world_scene.is_bag_empty())
+
+    def test_when_is_bag_empty_called_after_an_item_has_been_added_return_false(self):
+        self.world_scene.initialize_scene()
+        any_item = Mock()
+
+        self.world_scene.add_item_to_ui(any_item)
+        self.world_scene.add_item_to_player(any_item)
+        self.assertFalse(self.world_scene.is_bag_empty())
+
+    @patch("tekmate.ui.PlayerUI.clicked_on_bag_item")
+    def test_when_clicked_on_bag_item_delegate_function_down_to_player_ui(self, mock_player_ui_clicked_item):
+        self.world_scene.initialize_scene()
+        mock_player_ui_clicked_item.return_value = True
+        self.world_scene.clicked_on_bag_item(None)
+        mock_player_ui_clicked_item.assert_called_witch(None)
 
