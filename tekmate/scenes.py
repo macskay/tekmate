@@ -29,9 +29,9 @@ class WorldScene(Scene):
             if event.type == pygame.QUIT or self.escape_key_pressed(event):
                 raise Game.GameExitException
             elif self.left_mouse_button_pressed(event):
-                self.handle_left_mouse_button(pos)
+                self.handle_left_mouse_button(event.pos)
             elif self.right_mouse_button_pressed(event):
-                self.open_context_menu(pos)
+                self.open_context_menu(event.pos)
             elif self.i_pressed(event):
                 self.handle_bag()
 
