@@ -37,12 +37,6 @@ class PlayerUI(object):
         self.create_surface_and_image()
         self.bag_ui = BagUI()
 
-    def render(self, display):
-        self.surface.fill((255, 255, 255))
-        self.surface.blit(self.image, PlayerUI.PLAYER_IMAGE_OFFSET)
-
-        display.blit(self.surface, self.get_position())
-
     def create_surface_and_image(self):
         self.create_surface_with_factor()
         self.create_image_with_factor()
@@ -58,12 +52,18 @@ class PlayerUI(object):
         img_proportions = self.get_image_proportions()
         self.image = pygame.transform.scale(self.image, img_proportions)
 
-    def get_position(self):
-        return self.player.position
-
     def get_image_proportions(self):
         return int(round(Player.SCALING_FACTOR * self.image.get_width())), \
-            int(round(Player.SCALING_FACTOR * self.image.get_height()))
+                int(round(Player.SCALING_FACTOR * self.image.get_height()))
+
+    def render(self, display):
+        self.surface.fill((255, 255, 255))
+        self.surface.blit(self.image, PlayerUI.PLAYER_IMAGE_OFFSET)
+
+        display.blit(self.surface, self.get_position())
+
+    def get_position(self):
+        return self.player.position
 
     def move_player(self, mouse_pos, display):
         self.player.move(mouse_pos, display)
@@ -87,15 +87,25 @@ class PlayerUI(object):
         print(menu_clicked)
         return menu_clicked
 
+    def is_bag_empty(self):
+        return len(self.player.bag) == 0
+
+    def clicked_on_bag_item(self, pos):   #   pragma: no cover
+        return self.bag_ui.clicked_on_item(pos)
+
 
 class BagUI(object):
     BACKGROUND_COLOR = (0, 51, 0)
+    ITEM_WIDTH = 200
+    ITEM_HEIGHT = 100
+    ITEM_GAP = 110
 
     def __init__(self):
         pygame.font.init()
         self.visible = False
+
         self.surface = pygame.Surface((800, 500))
-        self.items_text = []
+        self.items_surfaces = []
         self.item_font = pygame.font.SysFont("comicsansms", 72)
         self.position = (100, 100)
 
@@ -103,25 +113,38 @@ class BagUI(object):
         self.visible = True
         self.build_item_text(player.bag)
 
+    def build_item_text(self, bag):
+        y = 0
+        for item in bag:
+            item_surface = pygame.Surface((self.ITEM_WIDTH, self.ITEM_HEIGHT))
+            item_text = self.item_font.render(item.get_name(), True, (0, 100, 0))
+            item_surface.blit(item_text, (0, 0))
+            self.items_surfaces.append((item_surface, y))
+            y += self.ITEM_GAP
+
     def render(self, display):
         self.surface.fill(self.BACKGROUND_COLOR)
-        y = 0
-        for text in self.items_text:
-            self.surface.blit(text, (0, y))
-            y += 50
+        for surface in self.items_surfaces:
+            self.surface.blit(surface[0], (0, surface[1]))
+
         display.blit(self.surface, self.position)
 
-    def build_item_text(self, bag):
-        for item in bag:
-            item_text = self.item_font.render(item.get_name(), True, (0, 100, 0))
-            self.items_text.append(item_text)
-
     def is_text_item_empty(self):
-        return len(self.items_text) == 0
+        return len(self.items_surfaces) == 0
 
     def hide_bag(self):
         self.visible = False
-        self.items_text = []
+        self.items_surfaces = []
+
+    def clicked_on_item(self, pos):   # pragma: no cover
+        for surface in self.items_surfaces:
+            y_begin = surface[1]
+            y_end = y_begin + self.ITEM_HEIGHT
+            if y_begin + self.position[1] < pos[1] < y_end + self.position[1] and \
+                    self.position[0] < pos[0] < self.position[0] + self.ITEM_WIDTH:
+                return True
+        else:
+            return False
 
 
 class ContextMenuUI(object):
@@ -160,7 +183,7 @@ class ContextMenuUI(object):
         self.position = pos
 
         if self.is_mouse_pos_clicked_is_furthest_right(pos, display):
-            self.position = (self.position[0]-self.surface.get_width(), self.position[1])
+            self.position = (self.position[0] - self.surface.get_width(), self.position[1])
 
     def is_mouse_pos_clicked_is_furthest_right(self, pos, display):
         return display.get_width() - pos[0] < self.surface.get_width()
@@ -173,7 +196,7 @@ class ContextMenuUI(object):
         return item
 
     def get_item_clicked(self, pos):
-        item_number = int((pos[1] - self.position[1])/30)
+        item_number = int((pos[1] - self.position[1]) / 30)
         return self.menu_items[item_number]
 
 

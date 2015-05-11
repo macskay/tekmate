@@ -77,25 +77,37 @@ class WorldScene(Scene):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 3
 
     def open_context_menu(self, pos):
-        self.change_context_menu_if_clicked_on_item(pos)
         self.show_context_menu(pos)
+        self.update_context_menu(pos)
 
-    def change_context_menu_if_clicked_on_item(self, pos):
-        menu_style = ContextMenuUI.CONTEXT_MENU_DEFAULT
+    def update_context_menu(self, pos):
+        self.update_context_menu_to_item_menu(pos)
+        self.update_context_menu_to_bag_menu(pos)
+
+    def update_context_menu_to_item_menu(self, pos):
         for item_ui in self.items_in_ui:
-            menu_style = self.change_context_menu_if_necessary(item_ui, pos)
-        self.context_menu.create_menu(menu_style)
+            if self.clicked_on(item_ui, pos):
+                self.context_menu.create_menu(ContextMenuUI.CONTEXT_MENU_ITEM)
+                break
+        else:
+            self.context_menu.create_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
 
-    def change_context_menu_if_necessary(self, item_ui, pos):
-        menu_style = ContextMenuUI.CONTEXT_MENU_DEFAULT
-        if self.clicked_on(item_ui, pos):
-            menu_style = ContextMenuUI.CONTEXT_MENU_ITEM
+    def update_context_menu_to_bag_menu(self, pos):   #   pragma: no cover
         if self.is_bag_visible() and self.clicked_on(self.player_ui.bag_ui, pos):
-            menu_style = ContextMenuUI.CONTEXT_MENU_BAG_ITEM
-        return menu_style
+            if self.clicked_on_bag_item(pos) and not self.is_bag_empty():
+                self.context_menu.create_menu(ContextMenuUI.CONTEXT_MENU_BAG_ITEM)
+            else:
+                print("No Context Menu available")  # TODO: SHOW LITTLE STOP SIGN
+                self.hide_context_menu()
 
     def is_bag_visible(self):
         return self.player_ui.is_bag_visible()
+
+    def is_bag_empty(self):
+        return self.player_ui.is_bag_empty()
+
+    def clicked_on_bag_item(self, pos):
+        return self.player_ui.clicked_on_bag_item(pos)
 
     def show_context_menu(self, pos):
         self.context_menu.show(pos, self.display)

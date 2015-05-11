@@ -114,7 +114,7 @@ class BagUITestCase(TestCase):
         mock_surface = self.create_mock_surface()
         self.bag_ui.show_bag(player_ui.player)
         self.bag_ui.render(mock_surface)
-        self.assertNotEqual(self.bag_ui.items_text, 0)
+        self.assertNotEqual(self.bag_ui.items_surfaces, 0)
 
     def test_is_text_empty_should_return_true_if_empty(self):
         self.assertTrue(self.bag_ui.is_text_item_empty())
@@ -123,7 +123,7 @@ class BagUITestCase(TestCase):
         self.bag_ui.visible = True
         self.bag_ui.hide_bag()
         self.assertFalse(self.bag_ui.visible)
-        self.assertEqual(len(self.bag_ui.items_text), 0)
+        self.assertEqual(len(self.bag_ui.items_surfaces), 0)
 
 
 class NoteUITestCase(TestCase):
