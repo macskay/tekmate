@@ -8,7 +8,7 @@ except ImportError:  # pragma: no cover
 
 from pygame import Surface
 from tekmate.game import Player
-from tekmate.items import Item
+from tekmate.items import Item, Letter, Door
 
 
 class PlayerTestCase(TestCase):
@@ -70,14 +70,14 @@ class PlayerTestCase(TestCase):
         self.assertRaises(Item.NotUsable, self.player.use_item, self.not_usable_item)
 
     def test_when_using_usable_item_use_message_should_be_returned(self):
-        self.assertEqual("Use Item", self.player.use_item(self.usable_item))
-
-    def test_when_looked_at_item_in_room_look_at_message_should_be_returned(self):
-        self.assertEqual("This is an Item", self.player.look_at(self.obtainable_item))
+        self.assertEqual("Use", self.player.use_item(self.usable_item))
 
     def test_when_looked_at_item_in_bag_description_should_be_returned(self):
         self.player.add_item(self.obtainable_item)
-        self.assertEqual("This is the Item-Description", self.player.look_at(self.obtainable_item))
+        self.assertEqual("Inspect", self.player.look_at(self.obtainable_item))
+
+    def test_when_looked_at_item_in_space_inspect_message_should_be_returned(self):
+        self.assertEqual(self.player.look_at(self.obtainable_item), self.obtainable_item.get_look_at_message())
 
     def test_when_trigger_item_combination_is_called_item_combine_functions_are_called(self):
         mock_item1 = Mock(spec=Item)

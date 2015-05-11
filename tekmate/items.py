@@ -1,4 +1,19 @@
 # -*- encoding: utf-8 -*-
+from json import load
+import os
+from os.path import join, abspath, split
+import sys
+
+
+def load_item_data(name):
+    pth = abspath(split(__file__)[0])
+    sys.path.append(abspath(join(pth, u"..")))
+    items_path = os.path.join(pth, "..", "assets", "global", "item_data.json")
+    with open(items_path) as item_file:
+        items_data = load(item_file)
+    for item in items_data:
+        if item == name:
+            return items_data[item]
 
 
 class Item(object):
@@ -14,19 +29,43 @@ class Item(object):
     class ConditionNotMet(Exception):
         pass
 
+    class InvalidInput(Exception):
+        pass
+
     def __init__(self, parent_container):
         assert parent_container is not None
         parent_container.append(self)
+        self.parent_container = parent_container
         self.usable = False
         self.obtainable = False
-        self.parent_container = parent_container
-        self.name = "Item"
         self.looked_at = False
+        self.name = "Name"
+        self.look_at_message = "Look at"
+        self.inspect_message = "Inspect"
+        self.use_message = "Use"
         self.unique_attributes = {}
         self.setup()
+        self.fill_attributes()
 
     def setup(self):  # pragma: no cover
         pass
+
+    def fill_attributes(self):
+        attributes = load_item_data(self.name)
+        if attributes is not None:
+            for key, value in attributes.items():
+                if key == "obtainable":
+                    self.obtainable = True
+                elif key == "look_at":
+                    self.look_at_message = value
+                elif key == "inspect":
+                    self.inspect_message = value
+                elif key == "usable":
+                    self.usable = True
+                elif key == "use":
+                    self.use_message = value
+                else:
+                    raise Item.InvalidInput
 
     def combine(self, other):  # pragma: no cover
         pass
@@ -43,15 +82,16 @@ class Item(object):
         return self.name
 
     def get_look_at_message(self):
-        return "This is an Item"
+        self.looked_at = True
+        return self.look_at_message
 
     def get_use_message(self):
         if not self.usable:
             raise Item.NotUsable
-        return "Use Item"
+        return self.use_message
 
-    def get_description(self):
-        return "This is the Item-Description"
+    def get_inspect_message(self):
+        return self.inspect_message
 
 
 class Paperclip(Item):
@@ -138,11 +178,7 @@ class Note(Item):
 
 class TelephoneNote(Item):
     def setup(self):
-        self.obtainable = True
         self.name = "Telephone-Note"
-
-    def get_look_at_message(self):
-        return "This is a Telephone Note"
 
 
 class Telephone(Item):

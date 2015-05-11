@@ -1,0 +1,25 @@
+{
+    "Letter": {
+      "obtainable": "True",
+      "look_at": "This is a Letter.",
+      "inspect": "This Letter is from Hammond. I should go to him.",
+      "use": "Dummy use Letter"
+    },
+    "Telephone-Note":{
+      "look_at": "This is a Telephone-Note.",
+      "inspect": "This is the same Note as before, just with some added numbers underneath the symbols.",
+      "use": "Dummy use Telephone-Note"
+    },
+    "Paperclip":{
+      "obtainable": "True",
+      "look_at": "This is a Paperclip.",
+      "inspect": "This is the same Paperclip as before. There are several ways to use them."
+    },
+    "Key":{
+      "inspect": "This is the Key for my room."
+    },
+    "Door":{
+      "look_at": "It seems that the key is still in the lock on the other side.",
+      "use": "This door is locked."
+    }
+}

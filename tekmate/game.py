@@ -26,7 +26,7 @@ class Player(object):
 
     def look_at(self, item1):
         if item1 in self.bag:
-            return item1.get_description()
+            return item1.get_inspect_message()
         return item1.get_look_at_message()
 
     def use_item(self, item1):

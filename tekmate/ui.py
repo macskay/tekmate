@@ -124,7 +124,7 @@ class NoteUI(object):
         assert parent_container is not None
         self.item = TelephoneNote(parent_container)
         self.surface = pygame.Surface((150, 200))
-        self.image = UI.load_image("prolog", "letter.png")
+        self.image = UI.load_image("prolog", "note.png")
         self.position = (300, 100)
 
     def render(self, display):

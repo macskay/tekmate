@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
-from unittest import TestCase
+from unittest import TestCase, skip
+from mock import Mock, patch
 
 from tekmate.game import Player
 from tekmate.items import Item, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
@@ -12,7 +13,7 @@ class ItemTestCase(TestCase):
         self.item = Item(self.container)
 
     def test_can_create_item(self):
-        self.assertEqual("Item", self.item.get_name())
+        self.assertEqual("Name", self.item.get_name())
 
     def test_when_created_item_should_be_inside_parent_container(self):
         self.assertIn(self.item, self.item.parent_container)
@@ -27,6 +28,10 @@ class ItemTestCase(TestCase):
         self.assertEqual(self.item.looked_at, False)
         self.item.looked_at = True
         self.assertEqual(self.item.looked_at, True)
+
+    def test_when_player_use_unusable_item_raise_exception(self):
+        self.item.usable = False
+        self.assertRaises(Item.NotUsable, self.item.get_use_message)
 
     def test_when_parent_container_is_none_AssertionError_is_raised(self):
         with self.assertRaises(AssertionError):
@@ -56,6 +61,30 @@ class ItemTestCase(TestCase):
         self.item.move_to_container(container_new)
         self.assertIn(self.item, container_new)
         self.assertNotIn(self.item, self.container)
+
+    def test_when_looking_at_item_looked_at_must_be_true(self):
+        self.item.get_look_at_message()
+        self.assertTrue(self.item.looked_at)
+
+    def test_when_inspecting_an_item_return_inspect_message(self):
+        self.assertEqual(self.item.get_inspect_message(), "Inspect")
+
+    @patch("tekmate.items.load_item_data")
+    def test_when_filling_attributes_values_are_set_correctly(self, mock_item_load_data):
+        mock_item_load_data.return_value = {u'use': u'USE',
+                                            u'inspect': u'INSPECT',
+                                            u'look_at': u'LOOK_AT',
+                                            u'usable': u'USABLE',
+                                            u'obtainable': u'OBTAINABLE'}
+        self.item.fill_attributes()
+        self.assertEqual(self.item.get_use_message(), "USE")
+        self.assertEqual(self.item.inspect_message, "INSPECT")
+        self.assertEqual(self.item.get_look_at_message(), "LOOK_AT")
+        self.assertTrue(self.item.usable)
+        self.assertTrue(self.item.obtainable)
+
+        mock_item_load_data.return_value = {"false": "entry"}
+        self.assertRaises(Item.InvalidInput, self.item.fill_attributes)
 
 
 class PaperclipTestCase(TestCase):
@@ -244,4 +273,4 @@ class TelephoneNoteTestCase(TestCase):
         self.assertEqual(self.tel_note.get_name(), "Telephone-Note")
 
     def test_get_look_at_message_should_be_telephone_note(self):
-        self.assertEqual(self.tel_note.get_look_at_message(), "This is a Telephone Note")
+        self.assertEqual(self.tel_note.get_look_at_message(), "This is a Telephone-Note.")
