@@ -6,7 +6,7 @@ from os.path import abspath, split, join
 import pygame
 
 from tekmate.game import Player
-from tekmate.items import TelephoneNote
+from tekmate.items import Note
 
 
 class UI(object):
@@ -83,6 +83,10 @@ class PlayerUI(object):
     def add_item(self, item):
         self.player.add_item(item)
 
+    def interact(self, menu_clicked):
+        print(menu_clicked)
+        return menu_clicked
+
 
 class BagUI(object):
     BACKGROUND_COLOR = (0, 51, 0)
@@ -93,6 +97,7 @@ class BagUI(object):
         self.surface = pygame.Surface((800, 500))
         self.items_text = []
         self.item_font = pygame.font.SysFont("comicsansms", 72)
+        self.position = (100, 100)
 
     def show_bag(self, player):
         self.visible = True
@@ -104,7 +109,7 @@ class BagUI(object):
         for text in self.items_text:
             self.surface.blit(text, (0, y))
             y += 50
-        display.blit(self.surface, (100, 100))
+        display.blit(self.surface, self.position)
 
     def build_item_text(self, bag):
         for item in bag:
@@ -119,10 +124,63 @@ class BagUI(object):
         self.items_text = []
 
 
+class ContextMenuUI(object):
+    BACKGROUND_COLOR = (190, 190, 190)
+    CONTEXT_MENU_DEFAULT = ["Walk"]
+    CONTEXT_MENU_ITEM = ["Look at", "Take", "Use"]
+    CONTEXT_MENU_BAG_ITEM = ["Inspect", "Select"]
+
+    def __init__(self):
+        self.visible = False
+        self.menu_items = None
+        self.surface = None
+        self.create_menu(self.CONTEXT_MENU_DEFAULT)
+        self.font = pygame.font.SysFont("arial", 25)
+        self.position = (0, 0)
+
+    def create_menu(self, menu_style):
+        self.menu_items = menu_style
+        height = len(menu_style) * 30
+        self.surface = pygame.Surface((150, height))
+
+    def render(self, display):
+        self.surface.fill(self.BACKGROUND_COLOR)
+        self.render_item_text()
+        display.blit(self.surface, self.position)
+
+    def render_item_text(self):
+        y = 0
+        for item in self.menu_items:
+            text = self.font.render(item, True, (50, 50, 50))
+            self.surface.blit(text, (0, y))
+            y += 30
+
+    def show(self, pos, display):
+        self.visible = True
+        self.position = pos
+
+        if self.is_mouse_pos_clicked_is_furthest_right(pos, display):
+            self.position = (self.position[0]-self.surface.get_width(), self.position[1])
+
+    def is_mouse_pos_clicked_is_furthest_right(self, pos, display):
+        return display.get_width() - pos[0] < self.surface.get_width()
+
+    def hide(self):
+        self.visible = False
+
+    def interact_with_item(self, pos):
+        item = self.get_item_clicked(pos)
+        return item
+
+    def get_item_clicked(self, pos):
+        item_number = int((pos[1] - self.position[1])/30)
+        return self.menu_items[item_number]
+
+
 class NoteUI(object):
     def __init__(self, parent_container):
         assert parent_container is not None
-        self.item = TelephoneNote(parent_container)
+        self.item = Note(parent_container)
         self.surface = pygame.Surface((150, 200))
         self.image = UI.load_image("prolog", "note.png")
         self.position = (300, 100)
