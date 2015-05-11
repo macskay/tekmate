@@ -6,7 +6,7 @@ from os.path import abspath, split, join
 import pygame
 
 from tekmate.game import Player
-from tekmate.items import TelephoneNote
+from tekmate.items import Note
 
 
 class UI(object):
@@ -85,6 +85,8 @@ class PlayerUI(object):
 
     def interact(self, menu_clicked):
         print(menu_clicked)
+        return menu_clicked
+
 
 class BagUI(object):
     BACKGROUND_COLOR = (0, 51, 0)
@@ -95,11 +97,11 @@ class BagUI(object):
         self.surface = pygame.Surface((800, 500))
         self.items_text = []
         self.item_font = pygame.font.SysFont("comicsansms", 72)
+        self.position = (100, 100)
 
     def show_bag(self, player):
         self.visible = True
         self.build_item_text(player.bag)
-
 
     def render(self, display):
         self.surface.fill(self.BACKGROUND_COLOR)
@@ -107,7 +109,7 @@ class BagUI(object):
         for text in self.items_text:
             self.surface.blit(text, (0, y))
             y += 50
-        display.blit(self.surface, (100, 100))
+        display.blit(self.surface, self.position)
 
     def build_item_text(self, bag):
         for item in bag:
@@ -125,8 +127,7 @@ class BagUI(object):
 class ContextMenuUI(object):
     BACKGROUND_COLOR = (190, 190, 190)
     CONTEXT_MENU_DEFAULT = ["Walk"]
-    CONTEXT_MENU_OBTAINABLE_ITEM = ["Look at", "Take"]
-    CONTEXT_MENU_USABLE_ITEM = ["Look at", "Use"]
+    CONTEXT_MENU_ITEM = ["Look at", "Take", "Use"]
     CONTEXT_MENU_BAG_ITEM = ["Inspect", "Select"]
 
     def __init__(self):
@@ -179,7 +180,7 @@ class ContextMenuUI(object):
 class NoteUI(object):
     def __init__(self, parent_container):
         assert parent_container is not None
-        self.item = TelephoneNote(parent_container)
+        self.item = Note(parent_container)
         self.surface = pygame.Surface((150, 200))
         self.image = UI.load_image("prolog", "letter.png")
         self.position = (300, 100)

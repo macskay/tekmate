@@ -71,10 +71,12 @@ class PlayerUITestCase(TestCase):
         self.player_ui.hide_bag()
         self.assertFalse(self.player_ui.is_bag_visible())
 
-
     def test_add_item_adds_an_item_to_the_players_bag(self):
         self.player_ui.add_item(Mock())
         self.assertEqual(len(self.player_ui.player.bag), 1)
+
+    def test_when_interacted_print_message(self):
+        self.assertEqual(self.player_ui.interact("Look at"), "Look at")
 
 
 class BagUITestCase(TestCase):
@@ -156,18 +158,13 @@ class NoteUITestCase(TestCase):
 
 class ContextMenuUITestCase(TestCase):
     def setUp(self):
-        menu_items = ["One", "Two", "Three"]
-        self.context_menu = ContextMenuUI(menu_items)
+        self.context_menu = ContextMenuUI()
 
     def test_visible_defaults_to_false(self):
         self.assertFalse(self.context_menu.visible)
 
     def test_when_creating_menu_items_container_should_not_be_none(self):
         self.assertIsNotNone(self.context_menu.menu_items)
-
-    def test_when_creating_and_menu_items_are_none_raise_exception(self):
-        with self.assertRaises(AssertionError):
-            ContextMenuUI(None)
 
     def test_when_creating_surface_should_not_be_none(self):
         self.assertIsNotNone(self.context_menu.surface)
@@ -176,6 +173,7 @@ class ContextMenuUITestCase(TestCase):
         self.assertIsNotNone(self.context_menu.font)
 
     def test_when_three_items_in_list_height_should_be_three_times_thirty_pixels(self):
+        self.context_menu.create_menu(ContextMenuUI.CONTEXT_MENU_ITEM)
         self.assertEqual(self.context_menu.surface.get_height(), 90)
 
     def test_when_should_drawn_then_surface_is_filled_with_background_color(self):
@@ -185,9 +183,14 @@ class ContextMenuUITestCase(TestCase):
         mock_surface.fill.assert_called_with(ContextMenuUI.BACKGROUND_COLOR)
 
     def test_when_context_menu_should_be_shown_visible_is_set_true(self):
-        self.context_menu.show((-10, 0))
+        self.context_menu.show((-10, 0), display.get_surface())
         self.assertTrue(self.context_menu.visible)
 
     def test_when_context_menu_should_be_hidden_visible_is_set_false(self):
         self.context_menu.hide()
         self.assertFalse(self.context_menu.visible)
+
+    def test_when_context_menu_is_opened_too_far_right_open_it_left_handed(self):
+        self.context_menu.show((1910, 0), Surface((1920, 0)))
+        expected_pos = (1910-self.context_menu.surface.get_width(), 0)
+        self.assertEqual(self.context_menu.position, expected_pos)
