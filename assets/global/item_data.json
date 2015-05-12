@@ -1,14 +1,17 @@
 {
     "Letter": {
       "obtainable": "True",
+      "usable": "True",
       "look_at": "This is a Letter.",
       "inspect": "This Letter is from Hammond. I should go to him.",
       "use": "Dummy use Letter"
     },
-    "Telephone-Note":{
-      "look_at": "This is a Telephone-Note.",
-      "inspect": "This is the same Note as before, just with some added numbers underneath the symbols.",
-      "use": "Dummy use Telephone-Note"
+    "Note":{
+      "obtainable": "True",
+      "usable": "True",
+      "look_at": "This is a Note.",
+      "inspect": "This is a note, with some of these strange Stargate-Symbols on it.",
+      "use": "I can't use that!"
     },
     "Paperclip":{
       "obtainable": "True",
@@ -19,6 +22,7 @@
       "inspect": "This is the Key for my room."
     },
     "Door":{
+      "usable": "True",
       "look_at": "It seems that the key is still in the lock on the other side.",
       "use": "This door is locked."
     }

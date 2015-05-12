@@ -2,7 +2,7 @@
 from unittest import TestCase
 import pygame
 
-from tekmate.ui import UI, ContextMenuUI, PlayerUI
+from tekmate.ui import UI, ContextMenuUI, PlayerUI, NoteUI
 
 
 class UITestCase(TestCase):
@@ -77,5 +77,25 @@ class PlayerUITestCase(TestCase):
     def test_rect_not_none_by_default(self):
         self.assertIsNotNone(self.ui.rect)
 
+    def test_bag_container_not_none_by_default(self):
+        self.assertIsNotNone(self.ui.bag_sprite_group)
 
 
+class NoteUITestCase(TestCase):
+    def setUp(self):
+        self.ui = NoteUI()
+
+    def test_can_create_note_ui(self):
+        self.assertIsInstance(self.ui, pygame.sprite.Sprite)
+
+    def test_image_not_none_by_default(self):
+        self.assertIsNotNone(self.ui.image)
+
+    def test_rect_not_none_by_default(self):
+        self.assertIsNotNone(self.ui.rect)
+
+    def test_when_obtainable_return_true(self):
+        self.assertTrue(self.ui.is_obtainable())
+
+    def test_when_usable_return_true(self):
+        self.assertTrue(self.ui.is_usable())

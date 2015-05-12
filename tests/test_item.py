@@ -263,14 +263,3 @@ class KeyTestCase(TestCase):
         self.door.unique_attributes["combined_with_paperclip"] = True
         self.key.combine(self.door)
         self.assertNotIn(self.key, self.container)
-
-
-class TelephoneNoteTestCase(TestCase):
-    def setUp(self):
-        self.tel_note = TelephoneNote([])
-
-    def test_can_create_tel_note(self):
-        self.assertEqual(self.tel_note.get_name(), "Telephone-Note")
-
-    def test_get_look_at_message_should_be_telephone_note(self):
-        self.assertEqual(self.tel_note.get_look_at_message(), "This is a Telephone-Note.")

@@ -2,6 +2,7 @@
 from unittest import TestCase
 
 from mock import patch
+import pygame
 
 from tekmate.configuration import PyGameInitializer, TekmateFactory
 from tekmate.scenes import WorldScene
@@ -48,6 +49,8 @@ class PyGameInitializerTestCase(TestCase):
 
 class TekmateFactoryTestCase(TestCase):
     def setUp(self):
+        pygame.init()
+        pygame.display.set_mode((1, 1))
         self.initializer = PyGameInitializer({"display_width": 1600, "display_height": 800})
         self.game = TekmateFactory(self.initializer).create()
 
