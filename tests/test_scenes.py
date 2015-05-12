@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
+from tekmate.configuration import PyGameInitializer, TekmateFactory
 
 try:
     from unittest import Mock, patch
@@ -19,7 +20,7 @@ class WorldSceneTestCase(TestCase):
         self.scene.game = self.game
 
     def create_context_menu_setup(self):
-        self.scene.display = pygame.display.get_surface()
+        self.scene.display = pygame.Surface((1, 1))
         self.scene.open_context_menu((0, 0))
         self.scene.handle_opened_context_menu((10, 10))
 
@@ -39,7 +40,7 @@ class WorldSceneTestCase(TestCase):
 
     def create_mouse_mock(self, button_nr):
             class MockEvent:
-                pos = (130, 200)
+                pos = (150, 200)
                 button = button_nr
                 type = pygame.MOUSEBUTTONDOWN
                 pygame.key = None
@@ -66,14 +67,14 @@ class WorldSceneTestCase(TestCase):
 
     def test_when_right_mouse_pressed_return_true(self):
         mock_event = self.create_mouse_mock(3)
-        self.assertTrue(self.scene.right_mouse_pressed(mock_event))
+        self.assertTrue(self.scene.is_right_mouse_pressed(mock_event))
 
     def test_when_left_mouse_pressed_return_true(self):
         mock_event = self.create_mouse_mock(1)
-        self.assertTrue(self.scene.left_mouse_pressed(mock_event))
+        self.assertTrue(self.scene.is_left_mouse_pressed(mock_event))
 
     def test_when_opening_context_menu_it_is_in_the_worlds_scene_group(self):
-        self.scene.display = pygame.display.get_surface()
+        self.scene.display = pygame.Surface((1, 1))
         self.scene.open_context_menu((10, 10))
         self.assertIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
 
@@ -92,15 +93,55 @@ class WorldSceneTestCase(TestCase):
         self.scene.handle_opened_context_menu((10, 10))
         self.assertEqual(self.scene.context_menu.get_button_pressed((10, 10)), "Walk")
 
+    def test_when_right_mouse_is_pressed_open_context_menu(self):
+        mock_event = self.create_mouse_mock(3)
+        self.scene.handle_input(mock_event)
+        self.assertIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
+
+    def test_when_left_mouse_is_pressed_somewhere_other_than_context_menu_close_context_menu(self):
+        self.scene.open_context_menu((100, 210))
+        mock_event = self.create_mouse_mock(1)
+        self.scene.handle_input(mock_event)
+        self.assertNotIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
+
+    def test_when_left_mouse_is_pressed_without_context_menu_open_move_player(self):
+        pygame.display.set_mode((1920, 1080))
+        mock_event = self.create_mouse_mock(1)
+        self.scene.process_left_mouse_button_pressed(mock_event)
+        self.assertEqual(self.scene.player_ui.rect.centerx, mock_event.pos[0])
+
 
 class WorldSceneRenderTestCase(TestCase):
     def setUp(self):
         self.scene = WorldScene("world")
-        self.scene.initialize_scene()
 
-    @patch("pygame.sprite.Group.draw")
+    @patch("pygame.sprite.OrderedUpdates.draw")
     def test_render_calls_world_scene_group_render(self, mock_draw):
+        pygame.init()
+        pygame.display.set_mode((1, 1))
         self.scene.game = Mock()
-        self.scene.game.render_context = {"display": pygame.display.get_surface()}
+        self.scene.display = pygame.Surface((1, 1))
         self.scene.render()
         mock_draw.assert_called_with(self.scene.display)
+
+
+class WorldSceneUpdateTestCase(TestCase):
+    def setUp(self):
+        self.scene = WorldScene("world")
+
+    def create_mouse_mock(self, button_nr):
+        class MockEvent:
+            pos = (150, 200)
+            button = button_nr
+            type = pygame.MOUSEBUTTONDOWN
+            pygame.key = None
+
+        return MockEvent()
+
+    def test_render_calls_world_scene_group_update(self):
+        self.scene.game = Mock()
+        mock_event = self.create_mouse_mock(1)
+        self.scene.game.update_context = {"get_events": lambda: [mock_event]}
+        self.scene.update()
+        self.assertEqual(self.scene.player_ui.rect.centerx, mock_event.pos[0])
+

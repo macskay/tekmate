@@ -2,7 +2,7 @@
 from unittest import TestCase
 import pygame
 
-from tekmate.ui import UI, ContextMenuUI
+from tekmate.ui import UI, ContextMenuUI, PlayerUI
 
 
 class UITestCase(TestCase):
@@ -13,6 +13,7 @@ class UITestCase(TestCase):
 class ContextMenuUITestCase(TestCase):
     def setUp(self):
         self.ui = ContextMenuUI()
+        pygame.display.set_mode((1920, 1080))
 
     def test_surface_to_draw_not_none_by_default(self):
         self.assertIsNotNone(self.ui.surface)
@@ -46,18 +47,35 @@ class ContextMenuUITestCase(TestCase):
 
     def test_when_opened_on_the_far_right_open_menu_top_right(self):
         pos = (1910, 10)
-        self.ui.open(pos, pygame.Surface((1920, 1080)))
+        self.ui.open(pos)
         self.assertEqual(self.ui.rect.topright, pos)
 
     def test_when_opened_on_the_far_bottom_right_open_menu_bottom_right(self):
         pos = (1910, 1070)
-        self.ui.open(pos, pygame.Surface((1920, 1080)))
+        self.ui.open(pos)
         self.assertEqual(self.ui.rect.bottomright, pos)
 
     def test_when_opened_on_the_far_bottom_open_menu_bottom_left(self):
         pos = (10, 1070)
-        self.ui.open(pos, pygame.Surface((1920, 1080)))
+        self.ui.open(pos)
         self.assertEqual(self.ui.rect.bottomleft, pos)
+
+    def test_when_asked_for_the_pos_return_rects_topleft(self):
+        self.assertEqual(self.ui.get_pos(), self.ui.rect.topleft)
+
+
+class PlayerUITestCase(TestCase):
+    def setUp(self):
+        self.ui = PlayerUI()
+
+    def test_can_create_player_ui(self):
+        self.assertIsInstance(self.ui, pygame.sprite.Sprite)
+
+    def test_image_not_none_by_default(self):
+        self.assertIsNotNone(self.ui.image)
+
+    def test_rect_not_none_by_default(self):
+        self.assertIsNotNone(self.ui.rect)
 
 
 

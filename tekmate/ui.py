@@ -12,13 +12,64 @@ class UI(object):
 
     @staticmethod
     def load_image(folder, name_of_file):
-        pth = abspath(split(__file__)[0])
-        sys.path.append(abspath(join(pth, u"..")))
-        fullname = os.path.join(pth, "..", "assets", folder, name_of_file)
         try:
-            return pygame.image.load(fullname)
+            return UI.try_loading_image(folder, name_of_file)
         except:
             raise UI.ImageNotFound
+
+    @staticmethod
+    def try_loading_image(folder, name_of_file):
+        pth = abspath(split(__file__)[0])
+        sys.path.append(abspath(join(pth, u"..")))
+        fullname = os.path.join(pth, "..", "assets", folder, name_of_file+".png")
+        return pygame.image.load(fullname)
+
+    @staticmethod
+    def is_new_pos_hiding_current_object_at_right_side(pos, width):
+        return pos[0]+width > pygame.display.get_surface().get_width()
+
+    @staticmethod
+    def is_new_pos_hiding_current_object_at_left_side(pos, width):
+        return pos[0]-width < 0
+
+    @staticmethod
+    def is_new_pos_hiding_current_object_at_bottom(pos, height):
+        return pos[1]+height > pygame.display.get_surface().get_height()
+
+    @staticmethod
+    def new_pos_hides_menu_on_right_bottom_side(pos, width, height):
+        return UI.is_new_pos_hiding_current_object_at_bottom(pos, height) and \
+            UI.is_new_pos_hiding_current_object_at_right_side(pos, width)
+
+
+class PlayerUI(pygame.sprite.Sprite):
+    COLOR_KEY = (0, 128, 128)
+
+    PLAYER_SUBSURFACE_SIZE = (50, 100)
+    SCALING_FACTOR = 2.8
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.asset = UI.load_image("global", "player")
+        self.image = self.set_image()
+        self.rect = self.image.get_rect()
+
+    def set_image(self):
+        image = self.asset.subsurface(pygame.Rect((0, 0), PlayerUI.PLAYER_SUBSURFACE_SIZE))
+        image = pygame.transform.scale(image, self.get_image_proportions(image))
+        image.set_colorkey(PlayerUI.COLOR_KEY)
+        return image
+
+    def get_image_proportions(self, image):
+        return int(round(PlayerUI.SCALING_FACTOR * image.get_width())), \
+            int(round(PlayerUI.SCALING_FACTOR * image.get_height()))
+
+    def move(self, mouse_pos):
+        self.rect.centerx = mouse_pos[0]
+        if UI.is_new_pos_hiding_current_object_at_right_side(mouse_pos, self.rect.width):
+            self.rect.right = mouse_pos[0]
+        if UI.is_new_pos_hiding_current_object_at_left_side(mouse_pos, self.rect.width):
+            self.rect.left = 0
 
 
 class ContextMenuUI(pygame.sprite.Sprite):
@@ -60,24 +111,17 @@ class ContextMenuUI(pygame.sprite.Sprite):
             self.surface.blit(text, (0, y))
             y += ContextMenuUI.MENU_ITEM_HEIGHT
 
-    def open(self, pos, display):
+    def open(self, pos):
         self.rect.topleft = pos
-        if self.new_pos_hides_menu_at_bottom(pos, display):
+
+        width = ContextMenuUI.MENU_ITEM_WIDTH
+        height = ContextMenuUI.MENU_ITEM_HEIGHT
+        if UI.is_new_pos_hiding_current_object_at_bottom(pos, height):
             self.rect.bottomleft = pos
-        if self.new_pos_hides_menu_on_right_side(pos, display):
+        if UI.is_new_pos_hiding_current_object_at_right_side(pos, width):
             self.rect.topright = pos
-        if self.new_pos_hides_menu_on_right_bottom_side(pos, display):
+        if UI.new_pos_hides_menu_on_right_bottom_side(pos, width, height):
             self.rect.bottomright = pos
-
-    def new_pos_hides_menu_on_right_side(self, pos, display):
-        return ContextMenuUI.MENU_ITEM_WIDTH > display.get_width()-pos[0]
-
-    def new_pos_hides_menu_at_bottom(self, pos, display):
-        return ContextMenuUI.MENU_ITEM_HEIGHT > display.get_height()-pos[1]
-
-    def new_pos_hides_menu_on_right_bottom_side(self, pos, display):
-        return self.new_pos_hides_menu_at_bottom(pos, display) and \
-            self.new_pos_hides_menu_on_right_side(pos, display)
 
     def get_button_pressed(self, pos):
         y = self.rect.y+ContextMenuUI.MENU_ITEM_HEIGHT
@@ -87,3 +131,6 @@ class ContextMenuUI(pygame.sprite.Sprite):
             y += ContextMenuUI.MENU_ITEM_HEIGHT
         else:
             raise ContextMenuUI.InvalidLayout
+
+    def get_pos(self):
+        return self.rect.topleft

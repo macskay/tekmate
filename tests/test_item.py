@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
-from unittest import TestCase, skip
-from mock import Mock, patch
+from unittest import TestCase
+from mock import patch
 
 from tekmate.game import Player
 from tekmate.items import Item, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \

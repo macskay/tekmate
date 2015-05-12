@@ -6,9 +6,8 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     from mock import Mock, patch
 
-from pygame import Surface
 from tekmate.game import Player
-from tekmate.items import Item, Letter, Door
+from tekmate.items import Item
 
 
 class PlayerTestCase(TestCase):
