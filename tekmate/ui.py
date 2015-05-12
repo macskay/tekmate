@@ -5,9 +5,6 @@ import os
 from os.path import abspath, split, join
 import pygame
 
-from tekmate.game import Player
-from tekmate.items import Note
-
 
 class UI(object):
     class ImageNotFound(Exception):
@@ -24,190 +21,69 @@ class UI(object):
             raise UI.ImageNotFound
 
 
-class PlayerUI(object):
-    PLAYER_IMAGE_OFFSET = (-30, 0)
+class ContextMenuUI(pygame.sprite.Sprite):
+    class InvalidLayout(Exception):
+        pass
 
-    def __init__(self):
-        self.player = None
-        self.global_images = None
-        self.surface = None
-        self.image = None
-
-        self.player = Player()
-        self.create_surface_and_image()
-        self.bag_ui = BagUI()
-
-    def create_surface_and_image(self):
-        self.create_surface_with_factor()
-        self.create_image_with_factor()
-
-    def create_surface_with_factor(self):
-        surface_proportions = self.player.get_surface_proportions()
-        self.surface = pygame.Surface(surface_proportions)
-        self.surface.convert()
-        self.surface.set_colorkey((0, 128, 128))
-
-    def create_image_with_factor(self):
-        self.image = UI.load_image("player", "player.png")
-        img_proportions = self.get_image_proportions()
-        self.image = pygame.transform.scale(self.image, img_proportions)
-
-    def get_image_proportions(self):
-        return int(round(Player.SCALING_FACTOR * self.image.get_width())), \
-                int(round(Player.SCALING_FACTOR * self.image.get_height()))
-
-    def render(self, display):
-        self.surface.fill((255, 255, 255))
-        self.surface.blit(self.image, PlayerUI.PLAYER_IMAGE_OFFSET)
-
-        display.blit(self.surface, self.get_position())
-
-    def get_position(self):
-        return self.player.position
-
-    def move_player(self, mouse_pos, display):
-        self.player.move(mouse_pos, display)
-
-    def is_bag_visible(self):
-        return self.bag_ui.visible
-
-    def show_bag(self):
-        self.bag_ui.show_bag(self.player)
-
-    def draw_bag(self, display):
-        self.bag_ui.render(display)
-
-    def hide_bag(self):
-        self.bag_ui.hide_bag()
-
-    def add_item(self, item):
-        self.player.add_item(item)
-
-    def interact(self, menu_clicked):
-        print(menu_clicked)
-        return menu_clicked
-
-    def is_bag_empty(self):
-        return len(self.player.bag) == 0
-
-    def clicked_on_bag_item(self, pos):   #   pragma: no cover
-        return self.bag_ui.clicked_on_item(pos)
-
-
-class BagUI(object):
-    BACKGROUND_COLOR = (0, 51, 0)
-    ITEM_WIDTH = 200
-    ITEM_HEIGHT = 100
-    ITEM_GAP = 110
-
-    def __init__(self):
-        pygame.font.init()
-        self.visible = False
-
-        self.surface = pygame.Surface((800, 500))
-        self.items_surfaces = []
-        self.item_font = pygame.font.SysFont("comicsansms", 72)
-        self.position = (100, 100)
-
-    def show_bag(self, player):
-        self.visible = True
-        self.build_item_text(player.bag)
-
-    def build_item_text(self, bag):
-        y = 0
-        for item in bag:
-            item_surface = pygame.Surface((self.ITEM_WIDTH, self.ITEM_HEIGHT))
-            item_text = self.item_font.render(item.get_name(), True, (0, 100, 0))
-            item_surface.blit(item_text, (0, 0))
-            self.items_surfaces.append((item_surface, y))
-            y += self.ITEM_GAP
-
-    def render(self, display):
-        self.surface.fill(self.BACKGROUND_COLOR)
-        for surface in self.items_surfaces:
-            self.surface.blit(surface[0], (0, surface[1]))
-
-        display.blit(self.surface, self.position)
-
-    def is_text_item_empty(self):
-        return len(self.items_surfaces) == 0
-
-    def hide_bag(self):
-        self.visible = False
-        self.items_surfaces = []
-
-    def clicked_on_item(self, pos):   # pragma: no cover
-        for surface in self.items_surfaces:
-            y_begin = surface[1]
-            y_end = y_begin + self.ITEM_HEIGHT
-            if y_begin + self.position[1] < pos[1] < y_end + self.position[1] and \
-                    self.position[0] < pos[0] < self.position[0] + self.ITEM_WIDTH:
-                return True
-        else:
-            return False
-
-
-class ContextMenuUI(object):
     BACKGROUND_COLOR = (190, 190, 190)
+    TEXT_COLOR = (50, 50, 50)
     CONTEXT_MENU_DEFAULT = ["Walk"]
     CONTEXT_MENU_ITEM = ["Look at", "Take", "Use"]
     CONTEXT_MENU_BAG_ITEM = ["Inspect", "Select"]
 
+    MENU_ITEM_HEIGHT = 30
+    MENU_ITEM_WIDTH = 100
+
     def __init__(self):
-        self.visible = False
-        self.menu_items = None
+        pygame.sprite.Sprite.__init__(self)
+        pygame.font.init()
         self.surface = None
-        self.create_menu(self.CONTEXT_MENU_DEFAULT)
+        self.current_layout = None
         self.font = pygame.font.SysFont("arial", 25)
-        self.position = (0, 0)
 
-    def create_menu(self, menu_style):
-        self.menu_items = menu_style
-        height = len(menu_style) * 30
-        self.surface = pygame.Surface((150, height))
+        self.build_context_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
 
-    def render(self, display):
-        self.surface.fill(self.BACKGROUND_COLOR)
-        self.render_item_text()
-        display.blit(self.surface, self.position)
+        self.image = self.surface
+        self.rect = self.image.get_rect()
 
-    def render_item_text(self):
+    def build_context_menu(self, layout):
+        self.current_layout = layout
+        new_height = ContextMenuUI.MENU_ITEM_HEIGHT*len(layout)
+        self.surface = pygame.Surface((ContextMenuUI.MENU_ITEM_WIDTH, new_height))
+        self.fill_up_context_menu_with_text(layout)
+
+    def fill_up_context_menu_with_text(self, layout):
+        self.surface.fill(ContextMenuUI.BACKGROUND_COLOR)
         y = 0
-        for item in self.menu_items:
-            text = self.font.render(item, True, (50, 50, 50))
+        for item in layout:
+            text = self.font.render(item, True, ContextMenuUI.TEXT_COLOR)
             self.surface.blit(text, (0, y))
-            y += 30
+            y += ContextMenuUI.MENU_ITEM_HEIGHT
 
-    def show(self, pos, display):
-        self.visible = True
-        self.position = pos
+    def open(self, pos, display):
+        self.rect.topleft = pos
+        if self.new_pos_hides_menu_at_bottom(pos, display):
+            self.rect.bottomleft = pos
+        if self.new_pos_hides_menu_on_right_side(pos, display):
+            self.rect.topright = pos
+        if self.new_pos_hides_menu_on_right_bottom_side(pos, display):
+            self.rect.bottomright = pos
 
-        if self.is_mouse_pos_clicked_is_furthest_right(pos, display):
-            self.position = (self.position[0] - self.surface.get_width(), self.position[1])
+    def new_pos_hides_menu_on_right_side(self, pos, display):
+        return ContextMenuUI.MENU_ITEM_WIDTH > display.get_width()-pos[0]
 
-    def is_mouse_pos_clicked_is_furthest_right(self, pos, display):
-        return display.get_width() - pos[0] < self.surface.get_width()
+    def new_pos_hides_menu_at_bottom(self, pos, display):
+        return ContextMenuUI.MENU_ITEM_HEIGHT > display.get_height()-pos[1]
 
-    def hide(self):
-        self.visible = False
+    def new_pos_hides_menu_on_right_bottom_side(self, pos, display):
+        return self.new_pos_hides_menu_at_bottom(pos, display) and \
+            self.new_pos_hides_menu_on_right_side(pos, display)
 
-    def interact_with_item(self, pos):
-        item = self.get_item_clicked(pos)
-        return item
-
-    def get_item_clicked(self, pos):
-        item_number = int((pos[1] - self.position[1]) / 30)
-        return self.menu_items[item_number]
-
-
-class NoteUI(object):
-    def __init__(self, parent_container):
-        assert parent_container is not None
-        self.item = Note(parent_container)
-        self.surface = pygame.Surface((150, 200))
-        self.image = UI.load_image("prolog", "note.png")
-        self.position = (300, 100)
-
-    def render(self, display):
-        self.surface.blit(self.image, (0, 0))
-        display.blit(self.surface, self.position)
+    def get_button_pressed(self, pos):
+        y = self.rect.y+ContextMenuUI.MENU_ITEM_HEIGHT
+        for elem in self.current_layout:
+            if y > pos[1]:
+                return elem
+            y += ContextMenuUI.MENU_ITEM_HEIGHT
+        else:
+            raise ContextMenuUI.InvalidLayout
