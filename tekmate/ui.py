@@ -151,8 +151,7 @@ class ContextMenuUI(pygame.sprite.Sprite):
             if y > pos[1]:
                 return elem
             y += ContextMenuUI.MENU_ITEM_HEIGHT
-        else:
-            raise ContextMenuUI.InvalidLayout
+        raise ContextMenuUI.InvalidLayout
 
     def get_pos(self):
         return self.rect.topleft

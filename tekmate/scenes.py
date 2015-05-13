@@ -178,4 +178,3 @@ class WorldScene(Scene):
 
     def tear_down(self):  # pragma: no cover
         print("Tearing-Down World")
-
