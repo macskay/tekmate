@@ -1,169 +1,174 @@
 # -*- encoding: utf-8 -*-
+from functools import partial
 import pygame
+import sys
 from taz.game import Scene, Game
 
-from tekmate.ui import PlayerUI, NoteUI, ContextMenuUI
+from tekmate.ui import ContextMenuUI, PlayerUI, NoteUI
 
 
 class WorldScene(Scene):
     def __init__(self, ident):
         super(WorldScene, self).__init__(ident)
-        self.player_ui = None
-        self.note_ui = None
         self.display = None
-        self.context_menu = None
 
-        self.world_container = []
-        self.items_in_ui = []
-
-    def initialize_scene(self):
-        self.player_ui = PlayerUI()
         self.context_menu = ContextMenuUI()
-        self.add_item_to_ui(NoteUI(self.world_container))
+        self.player_ui = PlayerUI()
 
-    def add_item_to_ui(self, item):
-        self.items_in_ui.append(item)
+        self.world_item_sprite_group = pygame.sprite.OrderedUpdates()
+        self.world_scene_sprite_group = pygame.sprite.OrderedUpdates()
+        self.world_scene_sprite_group.add(self.player_ui)
+        self.world_scene_context_group = pygame.sprite.OrderedUpdates()
 
-    def update(self):  # pragma: no cover  (This is only because of all the branches, they will get tested eventually)
+        self.current_observed_item = None
+
+    def initialize(self):
+        self.display = self.game.render_context["display"]
+
+        # TODO: ADDING AN ITEM
+        self.world_item_sprite_group.add(NoteUI())
+
+    def update(self):
         for event in self.game.update_context["get_events"]():
-            if event.type == pygame.QUIT or self.escape_key_pressed(event):
-                raise Game.GameExitException
-            elif self.left_mouse_button_pressed(event):
-                self.handle_left_mouse_button(event.pos)
-            elif self.right_mouse_button_pressed(event):
-                self.open_context_menu(event.pos)
-            elif self.i_pressed(event):
+            self.handle_input(event)
+
+    def handle_input(self, event):
+        if event.type == pygame.QUIT or self.is_escape_key_pressed(event):
+            raise Game.GameExitException
+        elif self.is_right_mouse_pressed(event):
+            self.process_right_mouse_pressed(event.pos)
+        elif self.is_left_mouse_pressed(event):
+            self.process_left_mouse_button_pressed(event)
+        elif self.is_i_pressed(event):  # pragma: no cover (implicit else, which does nothing)
+            if not self.context_menu.alive():
                 self.handle_bag()
 
-    def escape_key_pressed(self, event):
+    def is_escape_key_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
 
-    def left_mouse_button_pressed(self, event):
-        return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-
-    def handle_left_mouse_button(self, pos):
-        if not self.context_menu.visible:
-            self.move_player(pos, self.display)
-            self.add_item_if_clicked_on(pos)
-        else:
-            self.interact_with_context_menu(pos)
-
-    def move_player(self, mouse_pos, display):
-        self.player_ui.move_player(mouse_pos, display)
-
-    def add_item_if_clicked_on(self, pos):
-        for item_ui in self.items_in_ui:
-            if self.clicked_on(item_ui, pos):
-                self.add_item_to_player(item_ui)
-
-    def clicked_on(self, item, pos):
-        return item.surface.get_rect(topleft=item.position).collidepoint(pos)
-
-    def add_item_to_player(self, item_ui):
-        self.player_ui.add_item(item_ui.item)
-        self.items_in_ui.remove(item_ui)
-
-    def interact_with_context_menu(self, pos):
-        if self.clicked_on(self.context_menu, pos):
-            menu_clicked = self.context_menu.interact_with_item(pos)
-            self.player_ui.interact(menu_clicked)
-        else:
-            self.hide_context_menu()
-
-    def hide_context_menu(self):
-        self.context_menu.visible = False
-
-    def right_mouse_button_pressed(self, event):
+    def is_right_mouse_pressed(self, event):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 3
 
-    def open_context_menu(self, pos):
-        self.show_context_menu(pos)
-        self.update_context_menu(pos)
-
-    def update_context_menu(self, pos):
-        self.update_context_menu_to_item_menu(pos)
-        self.update_context_menu_to_bag_menu(pos)
-
-    def update_context_menu_to_item_menu(self, pos):
-        for item_ui in self.items_in_ui:
-            if self.clicked_on(item_ui, pos):
-                self.context_menu.create_menu(ContextMenuUI.CONTEXT_MENU_ITEM)
-                break
+    def process_right_mouse_pressed(self, pos):
+        clicked_in_bag_but_not_on_item = self.select_correct_context_menu_list(pos)
+        if clicked_in_bag_but_not_on_item:  # pragma: no cover
+            self.close_context_menu()
         else:
-            self.context_menu.create_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
+            self.open_context_menu(pos)
 
-    def update_context_menu_to_bag_menu(self, pos):   #   pragma: no cover
-        if self.is_bag_visible() and self.clicked_on(self.player_ui.bag_ui, pos):
-            if self.clicked_on_bag_item(pos) and not self.is_bag_empty():
-                self.context_menu.create_menu(ContextMenuUI.CONTEXT_MENU_BAG_ITEM)
-            else:
-                print("No Context Menu available")  # TODO: SHOW LITTLE STOP SIGN
-                self.hide_context_menu()
+    def select_correct_context_menu_list(self, pos):
+        self.set_context_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
+        if self.is_mouse_pos_inside_world_item(pos):   # pragma: no cover
+            self.set_context_menu(ContextMenuUI.CONTEXT_MENU_ITEM)
+        elif self.is_mouse_pos_inside_bag_item(pos):   # pragma: no cover
+            self.set_context_menu(ContextMenuUI.CONTEXT_MENU_BAG_ITEM)
+        else:
+            if self.is_bag_visible():    # pragma: no cover
+                return True
+        return False
+
+    def set_context_menu(self, layout):
+        self.context_menu.build_context_menu(layout)
+
+    def is_mouse_pos_inside_world_item(self, pos):
+        for item in self.world_item_sprite_group.sprites():
+            if item.rect.collidepoint(pos):  # pragma: no cover (implicit else, nothing happening here)
+                self.current_observed_item = item
+                return True
+        return False
+
+    def is_mouse_pos_inside_bag_item(self, pos):
+        for item in self.player_ui.bag_sprite_group.sprites()[1:]:
+            if item.rect.collidepoint(pos):  # pragma: no cover (implicit else, nothing happening here)
+                self.current_observed_item = item
+                return True
+        return False
+
+    def open_context_menu(self, pos):
+        self.context_menu.open(pos)
+        self.context_menu.add(self.world_scene_context_group)
 
     def is_bag_visible(self):
         return self.player_ui.is_bag_visible()
 
-    def is_bag_empty(self):
-        return self.player_ui.is_bag_empty()
+    def is_left_mouse_pressed(self, event):
+        return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
 
-    def clicked_on_bag_item(self, pos):
-        return self.player_ui.clicked_on_bag_item(pos)
+    def process_left_mouse_button_pressed(self, event):
+        if self.is_context_menu_visible():
+            self.handle_opened_context_menu(event.pos)
+        else:
+            if not self.is_bag_visible():  # pragma: no cover (implicit else)
+                self.move_player(event.pos)
 
-    def show_context_menu(self, pos):
-        self.context_menu.show(pos, self.display)
+    def is_context_menu_visible(self):
+        return self.context_menu.alive()
 
-    def i_pressed(self, event):
+    def handle_opened_context_menu(self, mouse_pos):
+        if self.is_context_menu_clicked_on(mouse_pos):     # pragma: no cover
+            self.process_button_command(mouse_pos)
+        else:
+            self.close_context_menu()
+
+    def is_context_menu_clicked_on(self, pos):
+        return self.context_menu.rect.collidepoint(pos)
+
+    def process_button_command(self, mouse_pos):
+        actions = {
+            "Walk": partial(self.move_player, mouse_pos),
+            "Take": partial(self.take_item, mouse_pos),
+            "Look at": partial(sys.stdout.write, self.look_at_item()),
+            "Use":  partial(sys.stdout.write, self.use_item()),
+            "Inspect": partial(sys.stdout.write, self.inspect_item())
+        }
+        item_pressed = self.get_button_pressed(mouse_pos)
+        actions[item_pressed]()
+        self.close_context_menu()
+
+    def get_button_pressed(self, mouse_pos):
+        return self.context_menu.get_button_pressed(mouse_pos)
+
+    def move_player(self, pos):
+        self.player_ui.move(pos)
+
+    def take_item(self, mouse_pos):
+        self.move_player(mouse_pos)
+        self.player_ui.add_item(self.current_observed_item)
+
+    def look_at_item(self):
+        return self.current_observed_item.look_at()
+
+    def use_item(self):
+        return self.current_observed_item.use()
+
+    def inspect_item(self):
+        return self.current_observed_item.inspect()
+
+    def is_i_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_i
 
     def handle_bag(self):
-        self.open_close_bag()
-        if self.is_context_menu_visible():
-            self.hide_context_menu()
-
-    def open_close_bag(self):
         if not self.is_bag_visible():
-            self.show_bag()
+            self.player_ui.bag_visible = True
         else:
-            self.hide_bag()
+            self.player_ui.bag_visible = False
 
-    def show_bag(self):
-        self.player_ui.show_bag()
+    def close_context_menu(self):
+        self.context_menu.remove(self.world_scene_context_group)
+        self.current_observed_item = None
 
-    def hide_bag(self):
-        self.player_ui.hide_bag()
-
-    def is_context_menu_visible(self):
-        return self.context_menu.visible
-
-    def render(self):  # pragma: no cover
-        self.display = self.game.render_context["display"]
+    def render(self):
         self.display.fill((0, 0, 0))
 
-        self.render_items()
-        self.render_player()
-        self.render_bag()
-        self.render_context_menu()
+        self.world_item_sprite_group.draw(self.display)
+        self.world_scene_sprite_group.draw(self.display)
+
+        if self.is_bag_visible():
+            self.player_ui.bag_sprite_group.draw(self.display)
+
+        self.world_scene_context_group.draw(self.display)
 
         pygame.display.flip()
-
-    def render_items(self):
-        for item in self.items_in_ui:
-            item.render(self.display)
-
-    def render_player(self):
-        self.player_ui.render(self.display)
-
-    def render_bag(self):
-        if self.player_ui.is_bag_visible():
-            self.player_ui.draw_bag(self.game.render_context["display"])
-        else:   # pragma: no cover
-            pass
-
-    def render_context_menu(self):
-        if self.is_context_menu_visible():
-            self.context_menu.render(self.display)
-        else:   # pragma: no cover
-            pass
 
     def resume(self):  # pragma: no cover
         print("Resuming World")

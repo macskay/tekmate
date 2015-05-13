@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
 
-from mock import patch, Mock
+from mock import patch
 import pygame
 
 from tekmate.configuration import PyGameInitializer, TekmateFactory
@@ -49,31 +49,15 @@ class PyGameInitializerTestCase(TestCase):
 
 class TekmateFactoryTestCase(TestCase):
     def setUp(self):
-        mock_init = Mock(spec=PyGameInitializer)
-        mock_scene = Mock(spec=WorldScene)
-        mock_init.initialize.return_value = None, {}
-
-        self.set_up_display()
-
-        self.mock_init = mock_init
-        self.mock_scene = mock_scene
-
-    def set_up_display(self):
-        pygame.display.init()
+        pygame.init()
         pygame.display.set_mode((1, 1))
-
-    def assertSceneRegistered(self, identifier, class_type):
-        game = TekmateFactory(self.mock_init).create()
-        scene = game.registered_scenes[identifier]
-        self.assertIsInstance(scene, class_type)
-
-    def test_create_should_initialize_pygame(self):
-        TekmateFactory(self.mock_init).create()
-        self.mock_init.initialize.assert_called_with()
+        self.initializer = PyGameInitializer({"display_width": 1600, "display_height": 800})
+        self.game = TekmateFactory(self.initializer).create()
 
     def test_create_should_add_world_scene_to_game(self):
-        self.assertSceneRegistered("world", WorldScene)
+
+        scene = self.game.registered_scenes["world"]
+        self.assertIsInstance(scene, WorldScene)
 
     def test_create_should_push_world_scene_to_game(self):
-        game = TekmateFactory(self.mock_init).create()
-        self.assertEqual(game.get_name_of_top_scene(), "world")
+        self.assertEqual(self.game.get_name_of_top_scene(), "world")

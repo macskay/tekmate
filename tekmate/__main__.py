@@ -9,6 +9,5 @@ def main():
     game = game_factory.create()
     game.enter_mainloop()
 
-
 if __name__ == "__main__":
     main()
