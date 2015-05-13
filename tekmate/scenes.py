@@ -25,7 +25,7 @@ class WorldScene(Scene):
     def initialize(self):
         self.display = self.game.render_context["display"]
 
-        # TODO: ADDING AN ITEM
+        # ADDING AN ITEM FOR TESTING
         self.world_item_sprite_group.add(NoteUI())
 
     def update(self):
@@ -49,9 +49,9 @@ class WorldScene(Scene):
     def is_right_mouse_pressed(self, event):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 3
 
-    def process_right_mouse_pressed(self, pos):
+    def process_right_mouse_pressed(self, pos):  # pragma: no cover
         clicked_in_bag_but_not_on_item = self.select_correct_context_menu_list(pos)
-        if clicked_in_bag_but_not_on_item:  # pragma: no cover
+        if clicked_in_bag_but_not_on_item:
             self.close_context_menu()
         else:
             self.open_context_menu(pos)
@@ -113,16 +113,16 @@ class WorldScene(Scene):
     def is_context_menu_clicked_on(self, pos):
         return self.context_menu.rect.collidepoint(pos)
 
-    def process_button_command(self, mouse_pos):
+    def process_button_command(self, mouse_pos):   # pragma: no cover
         actions = {
-            "Walk": partial(self.move_player, mouse_pos),
-            "Take": partial(self.take_item, mouse_pos),
-            "Look at": partial(sys.stdout.write, self.look_at_item()),
-            "Use":  partial(sys.stdout.write, self.use_item()),
-            "Inspect": partial(sys.stdout.write, self.inspect_item())
+            "Walk": lambda: partial(self.move_player, mouse_pos),
+            "Take": lambda: partial(self.take_item, mouse_pos),
+            "Look at": lambda: partial(sys.stdout.write, self.look_at_item()),
+            "Use": lambda: partial(sys.stdout.write, self.use_item()),
+            "Inspect": lambda: partial(sys.stdout.write, self.inspect_item())
         }
         item_pressed = self.get_button_pressed(mouse_pos)
-        actions[item_pressed]()
+        actions[item_pressed]()()
         self.close_context_menu()
 
     def get_button_pressed(self, mouse_pos):
@@ -141,7 +141,7 @@ class WorldScene(Scene):
     def use_item(self):
         return self.current_observed_item.use()
 
-    def inspect_item(self):
+    def inspect_item(self):     #  pragma: no cover
         return self.current_observed_item.inspect()
 
     def is_i_pressed(self, event):
