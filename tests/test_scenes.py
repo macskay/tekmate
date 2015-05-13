@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
-from tekmate.configuration import PyGameInitializer, TekmateFactory
-from tekmate.ui import NoteUI
+from tekmate.ui import NoteUI, ContextMenuUI
 
 try:
     from unittest import Mock, patch
@@ -22,7 +21,7 @@ class WorldSceneTestCase(TestCase):
 
     def create_context_menu_setup(self):
         self.scene.display = pygame.Surface((1, 1))
-        self.scene.open_context_menu((0, 0))
+        self.scene.process_right_mouse_pressed((0, 0))
         self.scene.handle_opened_context_menu((10, 10))
 
     def mock_up_event(self, eventtype, eventkey=None, eventbutton=None):
@@ -76,23 +75,12 @@ class WorldSceneTestCase(TestCase):
 
     def test_when_opening_context_menu_it_is_in_the_worlds_scene_group(self):
         self.scene.display = pygame.Surface((1, 1))
-        self.scene.open_context_menu((10, 10))
-        self.assertIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
+        self.scene.process_right_mouse_pressed((10, 10))
+        self.assertIn(self.scene.context_menu, self.scene.world_scene_context_group)
 
     def test_when_clicked_on_other_than_menu_close_menu(self):
         self.create_context_menu_setup()
         self.assertNotIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
-
-    def test_when_clicked_on_a_button_get_item_pressed(self):
-        self.create_context_menu_setup()
-
-        mock_rect = Mock()
-        self.scene.context_menu.rect = mock_rect
-        mock_rect.y = 20
-        mock_rect.collidepoint.return_value = True
-
-        self.scene.handle_opened_context_menu((10, 10))
-        self.assertEqual(self.scene.context_menu.get_button_pressed((10, 10)), "Walk")
 
     def test_when_sright_clicked_select_correct_context_menu(self):
         note = NoteUI()
@@ -104,10 +92,10 @@ class WorldSceneTestCase(TestCase):
     def test_when_right_mouse_is_pressed_open_context_menu(self):
         mock_event = self.create_mouse_mock(3)
         self.scene.handle_input(mock_event)
-        self.assertIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
+        self.assertIn(self.scene.context_menu, self.scene.world_scene_context_group)
 
     def test_when_left_mouse_is_pressed_somewhere_other_than_context_menu_close_context_menu(self):
-        self.scene.open_context_menu((100, 210))
+        self.scene.process_right_mouse_pressed((100, 210))
         mock_event = self.create_mouse_mock(1)
         self.scene.handle_input(mock_event)
         self.assertNotIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
@@ -131,7 +119,18 @@ class WorldSceneTestCase(TestCase):
         self.scene.take_item((10, 10))
         self.assertIn(self.scene.current_observed_item, self.scene.player_ui.bag_sprite_group)
 
+    @patch("tekmate.scenes.WorldScene.get_button_pressed")
+    def test_when_processing_a_command_the_respective_message_should_come_back(self, mock_get_button):
+        self.scene.current_observed_item = NoteUI()
+        self.scene.context_menu.bag_visible = True
+        mock_get_button.return_value = "Look at"
+        self.scene.process_button_command((1, 1))
+        self.assertFalse(self.scene.is_context_menu_visible())
 
+    def test_when_get_button_pressed_called_return_the_text_of_the_button(self):
+        self.scene.set_context_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
+        self.scene.open_context_menu((100, 100))
+        self.assertEqual(self.scene.get_button_pressed((1, 71)), "Walk")
 
 
 class WorldSceneRenderTestCase(TestCase):

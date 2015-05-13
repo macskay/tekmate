@@ -184,6 +184,9 @@ class NoteUI(pygame.sprite.Sprite):
     def use(self):
         return self.item.get_use_message()
 
+    def inspect(self):
+        return self.item.get_inspect_message()
+
     def is_obtainable(self):
         return self.item.obtainable
 

@@ -80,6 +80,10 @@ class PlayerUITestCase(TestCase):
     def test_bag_container_not_none_by_default(self):
         self.assertIsNotNone(self.ui.bag_sprite_group)
 
+    def test_when_moved_to_far_right_the_player_position_is_forced(self):
+        self.ui.move((1920, 10))
+        self.assertEqual(self.ui.rect.right, 1920)
+
 
 class NoteUITestCase(TestCase):
     def setUp(self):
