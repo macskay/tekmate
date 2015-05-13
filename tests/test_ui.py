@@ -63,7 +63,6 @@ class ContextMenuUITestCase(TestCase):
     def test_when_asked_for_the_pos_return_rects_topleft(self):
         self.assertEqual(self.ui.get_pos(), self.ui.rect.topleft)
 
-
 class PlayerUITestCase(TestCase):
     def setUp(self):
         self.ui = PlayerUI()
@@ -103,3 +102,6 @@ class NoteUITestCase(TestCase):
 
     def test_when_usable_return_true(self):
         self.assertTrue(self.ui.is_usable())
+
+    def test_when_called_inspect_return_inspect_message_of_note_item(self):
+        self.assertEqual(self.ui.inspect(), "This is a note, with some of these strange Stargate-Symbols on it.")
