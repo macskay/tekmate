@@ -4,7 +4,7 @@ import pygame
 import sys
 from taz.game import Scene, Game
 
-from tekmate.ui import ContextMenuUI, PlayerUI, NoteUI, DoorUI, LetterUI
+from tekmate.ui import ContextMenuUI, PlayerUI, DoorUI, LetterUI
 
 
 class WorldScene(Scene):
@@ -60,22 +60,16 @@ class WorldScene(Scene):
         else:
             self.open_context_menu(pos)
 
-    def select_correct_context_menu_list(self, pos):
+    def select_correct_context_menu_list(self, pos):  # pragma: no cover
         self.set_context_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
-        if self.is_mouse_pos_inside_world_item(pos):   # pragma: no cover
-            if self.current_selected_item is not None:
-                self.set_context_menu(ContextMenuUI.CONTEXT_COMBINE_ITEM)
-            else:
-                self.set_context_menu(ContextMenuUI.CONTEXT_MENU_ITEM)
-        elif self.is_mouse_pos_inside_bag_item(pos):   # pragma: no cover
-            self.set_context_menu(ContextMenuUI.CONTEXT_MENU_BAG_ITEM)
+        if self.is_mouse_pos_inside_world_item(pos) and not self.is_bag_visible():
+            self.set_world_item_context_menu()
+        elif self.is_mouse_pos_inside_bag_item(pos):
+            self.set_bag_item_world_context_menu()
         else:
             if self.is_bag_visible():    # pragma: no cover
                 return True
         return False
-
-    def set_context_menu(self, layout):
-        self.context_menu.build_context_menu(layout)
 
     def is_mouse_pos_inside_world_item(self, pos):
         for item in self.world_item_sprite_group.sprites():
@@ -84,6 +78,18 @@ class WorldScene(Scene):
                 return True
         return False
 
+    def is_bag_visible(self):
+        return self.player_ui.is_bag_visible()
+
+    def set_world_item_context_menu(self):  # pragma: no cover
+        if self.current_selected_item is not None:
+            self.set_context_menu(ContextMenuUI.CONTEXT_COMBINE_ITEM)
+        else:
+            self.set_context_menu(ContextMenuUI.CONTEXT_MENU_ITEM)
+
+    def set_context_menu(self, layout):
+        self.context_menu.build_context_menu(layout)
+
     def is_mouse_pos_inside_bag_item(self, pos):
         for item in self.player_ui.bag_sprite_group.sprites()[1:]:
             if item.rect.collidepoint(pos):  # pragma: no cover (implicit else, nothing happening here)
@@ -91,12 +97,12 @@ class WorldScene(Scene):
                 return True
         return False
 
+    def set_bag_item_world_context_menu(self):  # pragma: no cover
+        self.set_context_menu(ContextMenuUI.CONTEXT_MENU_BAG_ITEM)
+
     def open_context_menu(self, pos):
         self.context_menu.open(pos)
         self.context_menu.add(self.world_scene_context_group)
-
-    def is_bag_visible(self):
-        return self.player_ui.is_bag_visible()
 
     def is_left_mouse_pressed(self, event):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
@@ -132,7 +138,7 @@ class WorldScene(Scene):
             "Use": lambda: partial(sys.stdout.write, self.use_item()),
             "Inspect": lambda: partial(sys.stdout.write, self.inspect_item()),
             "Select": lambda: partial(self.select_item),
-            "Combine": lambda: partial(self.combine_items, mouse_pos)
+            "Combine": lambda: partial(self.combine_items)
         }
         item_pressed = self.get_button_pressed(mouse_pos)
         actions[item_pressed]()()
@@ -159,6 +165,8 @@ class WorldScene(Scene):
 
     def select_item(self):
         self.current_selected_item = self.current_observed_item
+        item_name = self.current_selected_item.item.get_name()
+        print("%s selected!" % item_name)
 
     def is_i_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_i

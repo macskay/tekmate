@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
 from tekmate.items import Door, Letter
-from tekmate.ui import NoteUI, ContextMenuUI, DoorUI, LetterUI, PlayerUI
+from tekmate.ui import NoteUI, ContextMenuUI, DoorUI, LetterUI, PlayerUI, ItemUI
 
 try:
     from unittest import Mock, patch
@@ -144,10 +144,12 @@ class WorldSceneTestCase(TestCase):
         self.scene.combine_items()
         player_ui.combine_items.assert_called_with(letter, door)
 
-    def test_when_select_item_store_current_observerd_item_into_current_selected_item(self):
-        self.scene.current_observed_item = 1
+    @patch("tekmate.items.Item.get_name")
+    def test_when_select_item_store_current_observerd_item_into_current_selected_item(self, mock_get_name):
+        self.scene.current_observed_item = Mock()
+        mock_get_name.return_value = "NAME"
         self.scene.select_item()
-        self.assertEqual(self.scene.current_selected_item, 1)
+        self.assertEqual(self.scene.current_selected_item, self.scene.current_observed_item)
 
 
 class WorldSceneRenderTestCase(TestCase):
