@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objecttypes>
+ <objecttype name="item" color="#f30be8"/>
+ <objecttype name="waypoint" color="#1a00da"/>
+ <objecttype name="exit" color="#e1cf06"/>
+</objecttypes>

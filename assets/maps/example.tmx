@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="32" height="18" tilewidth="32" tileheight="32" nextobjectid="18">
+ <layer name="Tiles" width="32" height="18">
+  <data encoding="base64" compression="zlib">
+   eJztwQEBAAAAgiD/r25IQAEAfBkJAAAB
+  </data>
+ </layer>
+ <imagelayer name="background">
+  <image source="../images/title-background.png"/>
+ </imagelayer>
+ <objectgroup name="items">
+  <object id="1" name="note" type="item" x="960" y="416" width="32" height="32"/>
+ </objectgroup>
+ <objectgroup name="waypoints">
+  <object id="6" name="bookshelf" type="waypoint" x="128" y="480" width="32" height="32">
+   <ellipse/>
+  </object>
+  <object id="10" name="bookshelf" type="waypoint" x="672" y="480" width="32" height="32">
+   <ellipse/>
+  </object>
+  <object id="11" name="bookshelf" type="waypoint" x="384" y="480" width="32" height="32">
+   <ellipse/>
+  </object>
+  <object id="12" name="bookshelf" type="waypoint" x="512" y="416" width="32" height="32">
+   <ellipse/>
+  </object>
+  <object id="13" name="forehead" type="waypoint" x="768" y="416" width="32" height="32">
+   <ellipse/>
+  </object>
+  <object id="14" name="bookshelf" type="waypoint" x="224" y="416" width="32" height="32">
+   <ellipse/>
+  </object>
+ </objectgroup>
+ <objectgroup name="exits">
+  <object id="16" name="linux land" type="exit" x="32" y="544">
+   <properties>
+    <property name="locked" value="True"/>
+   </properties>
+   <polygon points="0,0 15.4545,-32.5455 32.3636,-0.363636"/>
+  </object>
+  <object id="17" name="linux land" type="exit" x="960" y="544">
+   <properties>
+    <property name="locked" value="True"/>
+   </properties>
+   <polygon points="0,0 15.4545,-32.5455 32.3636,-0.363636"/>
+  </object>
+ </objectgroup>
+</map>
