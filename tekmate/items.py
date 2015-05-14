@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+from functools import partial
 from json import load
 import os
 from os.path import join, abspath, split
@@ -39,11 +40,11 @@ class Item(object):
         self.usable = False
         self.obtainable = False
         self.looked_at = False
-        self.name = "Name"
-        self.look_at_message = "Look at"
-        self.inspect_message = "Inspect"
-        self.use_message = "Use"
-        self.use_not_usable_message = "Not Usable"
+        self.name = "NAME"
+        self.look_at_message = "LOOK_AT"
+        self.inspect_message = "INSPECT"
+        self.use_message = "USE"
+        self.use_not_usable_message = "NOT_USABLE"
         self.unique_attributes = {}
         self.setup()
         self.fill_attributes()
@@ -52,21 +53,37 @@ class Item(object):
         pass
 
     def fill_attributes(self):
+        actions = {
+            "obtainable": lambda: partial(self.set_obtainable, value),
+            "look_at": lambda: partial(self.set_look_at, value),
+            "usable": lambda: partial(self.set_usable, value),
+            "use": lambda: partial(self.set_use_message, value),
+            "use_not_usable": lambda: partial(self.set_use_not_usable_message, value),
+            "inspect": lambda: partial(self.set_inspect, value)
+        }
         attributes = load_item_data(self.name)
         if attributes is not None:
             for key, value in attributes.items():
-                if key == "obtainable":
-                    self.obtainable = True
-                elif key == "look_at":
-                    self.look_at_message = value
-                elif key == "inspect":
-                    self.inspect_message = value
-                elif key == "usable":
-                    self.usable = True
-                elif key == "use":
-                    self.use_message = value
-                elif key == "use_not_usable":
-                    self.use_not_usable_message = value
+                if key in actions.keys():
+                    actions[key]()()
+
+    def set_obtainable(self, value):
+        self.obtainable = value
+
+    def set_look_at(self, value):
+        self.look_at_message = value
+
+    def set_usable(self, value):
+        self.usable = value
+
+    def set_inspect(self, value):
+        self.inspect_message = value
+
+    def set_use_message(self, value):
+        self.use_message = value
+
+    def set_use_not_usable_message(self, value):
+        self.use_not_usable_message = value
 
     def combine(self, other):  # pragma: no cover
         pass
@@ -97,6 +114,11 @@ class Item(object):
     def is_combination_possible(self, other):  # pragma: no cover
         pass
 
+    def is_wrong_combination(self, other, name):
+        if other.get_name() != name:
+            return True
+        return False
+
     def change_look_at_message(self, other, new_look_at_key):
         attributes = load_item_data(other.get_name())
         for key, value in attributes.items():
@@ -108,11 +130,14 @@ class Paperclip(Item):
     def setup(self):
         self.name = "Paperclip"
 
-    def combine(self, other):
-        if other.get_name() != "Door":
-            raise Item.InvalidCombination
+    def is_combination_possible(self, other):
+        if self.is_wrong_combination(other, "Door"):
+            return False
         if not other.unique_attributes["combined_with_letter"]:
-            raise Item.ConditionNotMet
+            return False
+        return True
+
+    def combine(self, other):
         self.remove_from_parent_container()
         key_item = next((item for item in other.parent_container if item.get_name() == "Key"))
         key_item.obtainable = True
@@ -123,9 +148,12 @@ class Key(Item):
     def setup(self):
         self.name = "Key"
 
+    def is_combination_possible(self, other):
+        if self.is_wrong_combination(other, "Door"):
+            return False
+        return True
+
     def combine(self, other):
-        if not other.get_name() == "Door":
-            raise self.InvalidCombination
         other.usable = True
         self.remove_from_parent_container()
 
@@ -139,9 +167,12 @@ class IdCard(Item):
         self.obtainable = True
         self.name = "ID-Card"
 
-    def combine(self, other):
+    def is_combination_possible(self, other):
         if self.has_insufficient_permissions(other):
-            raise IdCard.AccessDenied
+            return False
+        return True
+
+    def combine(self, other):
         other.usable = True
 
     def has_insufficient_permissions(self, other):
@@ -159,9 +190,12 @@ class CardReader(Item):
     def setup(self):
         self.name = "Card-Reader"
 
+    def is_combination_possible(self, other):
+        if self.is_wrong_combination(other, "ID-Card"):
+            return False
+        return True
+
     def combine(self, other):
-        if other.get_name() != "ID-Card":
-            raise Item.InvalidCombination
         other.unique_attributes["key_code"] += 1
 
 
@@ -170,20 +204,19 @@ class Note(Item):
         self.obtainable = True
         self.name = "Note"
 
-    def combine(self, other):
-        if other.get_name() != "Symbols-Folder":
-            raise Item.InvalidCombination
+    def is_combination_possible(self, other):
+        if self.is_wrong_combination(other, "Symbols-Folder"):
+            return False
+        return True
 
+    def combine(self, other):
         self.add_telephone_note_to_player_bag()
         self.remove_from_parent_container()
 
     def add_telephone_note_to_player_bag(self):
         player_bag = self.parent_container
-        tel_note = self.create_telephone_note(player_bag)
+        tel_note = TelephoneNote(player_bag)
         player_bag.append(tel_note)
-
-    def create_telephone_note(self, player_bag):
-        return TelephoneNote(player_bag)
 
 
 class TelephoneNote(Item):
@@ -195,9 +228,12 @@ class Telephone(Item):
     def setup(self):
         self.name = "Telephone"
 
+    def is_combination_possible(self, other):
+        if self.is_wrong_combination(other, "Telephone-Note"):
+            return False
+        return True
+
     def combine(self, other):
-        if other.get_name() != "Telephone-Note":
-            raise Item.InvalidCombination
         other.remove_from_parent_container()
 
 
@@ -207,7 +243,7 @@ class Letter(Item):
         self.name = "Letter"
 
     def is_combination_possible(self, other):
-        if other.get_name() != "Door":
+        if self.is_wrong_combination(other, "Door"):
             return False
         if not other.looked_at:
             return False

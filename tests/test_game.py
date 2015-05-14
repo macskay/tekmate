@@ -47,7 +47,7 @@ class PlayerTestCase(TestCase):
 
     def test_when_looked_at_item_in_bag_description_should_be_returned(self):
         self.player.add_item(self.obtainable_item)
-        self.assertEqual("Inspect", self.player.look_at(self.obtainable_item))
+        self.assertEqual("INSPECT", self.player.look_at(self.obtainable_item))
 
     def test_when_looked_at_item_in_space_inspect_message_should_be_returned(self):
         self.assertEqual(self.player.look_at(self.obtainable_item), self.obtainable_item.get_look_at_message())
