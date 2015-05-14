@@ -1,11 +1,12 @@
 # -*- encoding: utf-8 -*-
+from abc import abstractmethod, ABCMeta
 import sys
 
 import os
 from os.path import abspath, split, join
 import pygame
 from tekmate.game import Player
-from tekmate.items import Note
+from tekmate.items import Note, Door, Letter
 
 
 class UI(object):
@@ -91,6 +92,11 @@ class PlayerUI(pygame.sprite.Sprite):
     def is_bag_visible(self):
         return self.bag_visible
 
+    def combine_items(self, item_selected, item_observed):  # pragma: no cover
+        if item_selected.item.is_combination_possible(item_observed.item):
+            self.player.trigger_item_combination(item_selected.item, item_observed.item)
+            item_selected.kill()
+
 
 class ContextMenuUI(pygame.sprite.Sprite):
     class InvalidLayout(Exception):
@@ -101,6 +107,7 @@ class ContextMenuUI(pygame.sprite.Sprite):
     CONTEXT_MENU_DEFAULT = ["Walk"]
     CONTEXT_MENU_ITEM = ["Look at", "Take", "Use"]
     CONTEXT_MENU_BAG_ITEM = ["Inspect", "Select"]
+    CONTEXT_COMBINE_ITEM = ["Combine"]
 
     MENU_ITEM_HEIGHT = 30
     MENU_ITEM_WIDTH = 100
@@ -166,16 +173,19 @@ class BagBackground(pygame.sprite.Sprite):
         self.rect.center = (pygame.display.get_surface().get_width()//2, pygame.display.get_surface().get_height()//2)
 
 
-class NoteUI(pygame.sprite.Sprite):
+class ItemUI(pygame.sprite.Sprite):
+    __metaclass__ = ABCMeta
+
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = UI.load_image("items", "note")
-        self.image = pygame.transform.scale(self.image, (100, 100))
-        self.rect = self.image.get_rect()
+        self.image = None
+        self.rect = None
+        self.item = None
+        self.setup()
 
-        self.rect.topleft = (800, 100)
-
-        self.item = Note([])
+    @abstractmethod
+    def setup(self):  # pragma: no cover
+        pass
 
     def look_at(self):
         return self.item.get_look_at_message()
@@ -191,3 +201,33 @@ class NoteUI(pygame.sprite.Sprite):
 
     def is_usable(self):
         return self.item.usable
+
+
+class NoteUI(ItemUI):
+    def setup(self):
+        self.image = UI.load_image("items", "note")
+        self.image = pygame.transform.scale(self.image, (100, 100))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (800, 100)
+        self.item = Note([])
+
+
+class DoorUI(ItemUI):
+    def setup(self):
+        self.image = UI.load_image("items", "door")
+        self.image = pygame.transform.scale(self.image, (100, 150))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (1500, 100)
+        self.item = Door([])
+
+
+class LetterUI(ItemUI):
+    def setup(self):
+        self.image = UI.load_image("items", "note")
+        self.image = pygame.transform.scale(self.image, (100, 150))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (100, 100)
+        self.item = Letter([])
+
+
+

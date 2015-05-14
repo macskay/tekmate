@@ -22,8 +22,9 @@
       "inspect": "This is the Key for my room."
     },
     "Door":{
-      "usable": "True",
       "look_at": "It seems that the key is still in the lock on the other side.",
-      "use": "This door is locked."
+      "look_at_after_letter": "I pushed the letter under the door gap. Now what?",
+      "use": "This door is now open.",
+      "use_not_usable": "This door is locked."
     }
 }

@@ -4,7 +4,7 @@ import pygame
 import sys
 from taz.game import Scene, Game
 
-from tekmate.ui import ContextMenuUI, PlayerUI, NoteUI
+from tekmate.ui import ContextMenuUI, PlayerUI, NoteUI, DoorUI, LetterUI
 
 
 class WorldScene(Scene):
@@ -21,12 +21,14 @@ class WorldScene(Scene):
         self.world_scene_context_group = pygame.sprite.OrderedUpdates()
 
         self.current_observed_item = None
+        self.current_selected_item = None
 
-    def initialize(self):
+    def initialize(self):  # pragma: no cover
         self.display = self.game.render_context["display"]
 
         # ADDING AN ITEM FOR TESTING
-        self.world_item_sprite_group.add(NoteUI())
+        self.world_item_sprite_group.add(LetterUI())
+        self.world_item_sprite_group.add(DoorUI())
 
     def update(self):
         for event in self.game.update_context["get_events"]():
@@ -39,9 +41,11 @@ class WorldScene(Scene):
             self.process_right_mouse_pressed(event.pos)
         elif self.is_left_mouse_pressed(event):
             self.process_left_mouse_button_pressed(event)
-        elif self.is_i_pressed(event):  # pragma: no cover (implicit else, which does nothing)
-            if not self.context_menu.alive():
+        elif self.is_i_pressed(event):
+            if not self.context_menu.alive():  # pragma: no cover (implicit else)
                 self.handle_bag()
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_F1:  # pragma: no cover (just debugging)
+            print(self.current_selected_item.item.get_name() + " is currently selected.")
 
     def is_escape_key_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
@@ -59,7 +63,10 @@ class WorldScene(Scene):
     def select_correct_context_menu_list(self, pos):
         self.set_context_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
         if self.is_mouse_pos_inside_world_item(pos):   # pragma: no cover
-            self.set_context_menu(ContextMenuUI.CONTEXT_MENU_ITEM)
+            if self.current_selected_item is not None:
+                self.set_context_menu(ContextMenuUI.CONTEXT_COMBINE_ITEM)
+            else:
+                self.set_context_menu(ContextMenuUI.CONTEXT_MENU_ITEM)
         elif self.is_mouse_pos_inside_bag_item(pos):   # pragma: no cover
             self.set_context_menu(ContextMenuUI.CONTEXT_MENU_BAG_ITEM)
         else:
@@ -101,6 +108,10 @@ class WorldScene(Scene):
             if not self.is_bag_visible():  # pragma: no cover (implicit else)
                 self.move_player(event.pos)
 
+    def combine_items(self):
+        self.player_ui.combine_items(self.current_selected_item, self.current_observed_item)
+        self.current_selected_item = None
+
     def is_context_menu_visible(self):
         return self.context_menu.alive()
 
@@ -119,7 +130,9 @@ class WorldScene(Scene):
             "Take": lambda: partial(self.take_item, mouse_pos),
             "Look at": lambda: partial(sys.stdout.write, self.look_at_item()),
             "Use": lambda: partial(sys.stdout.write, self.use_item()),
-            "Inspect": lambda: partial(sys.stdout.write, self.inspect_item())
+            "Inspect": lambda: partial(sys.stdout.write, self.inspect_item()),
+            "Select": lambda: partial(self.select_item),
+            "Combine": lambda: partial(self.combine_items, mouse_pos)
         }
         item_pressed = self.get_button_pressed(mouse_pos)
         actions[item_pressed]()()
@@ -143,6 +156,9 @@ class WorldScene(Scene):
 
     def inspect_item(self):     #  pragma: no cover
         return self.current_observed_item.inspect()
+
+    def select_item(self):
+        self.current_selected_item = self.current_observed_item
 
     def is_i_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_i

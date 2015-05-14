@@ -29,9 +29,9 @@ class ItemTestCase(TestCase):
         self.item.looked_at = True
         self.assertEqual(self.item.looked_at, True)
 
-    def test_when_player_use_unusable_item_raise_exception(self):
+    def test_when_player_use_unusable_item_return_use_not_usable_message(self):
         self.item.usable = False
-        self.assertRaises(Item.NotUsable, self.item.get_use_message)
+        self.assertEqual(self.item.get_use_message(), "Not Usable")
 
     def test_when_parent_container_is_none_AssertionError_is_raised(self):
         with self.assertRaises(AssertionError):
@@ -82,9 +82,6 @@ class ItemTestCase(TestCase):
         self.assertEqual(self.item.get_look_at_message(), "LOOK_AT")
         self.assertTrue(self.item.usable)
         self.assertTrue(self.item.obtainable)
-
-        mock_item_load_data.return_value = {"false": "entry"}
-        self.assertRaises(Item.InvalidInput, self.item.fill_attributes)
 
 
 class PaperclipTestCase(TestCase):
@@ -223,23 +220,27 @@ class LetterTestCase(TestCase):
     def test_can_create_letter(self):
         self.assertEqual(self.letter.get_name(), "Letter")
 
-    def test_when_letter_combined_other_than_door_raise_exception(self):
+    def test_when_letter_combined_other_than_door_return_false(self):
         any_item = Item([])
-        self.assertRaises(Item.InvalidCombination, self.letter.combine, any_item)
+        self.assertFalse(self.letter.is_combination_possible(any_item))
 
     def test_gets_consumed_when_combined_correctly_with_door(self):
         self.door.looked_at = True
         self.letter.combine(self.door)
         self.assertNotIn(self.letter, self.container)
 
-    def test_when_letter_combined_with_door_and_door_looked_at_is_false_raise_exception(self):
-        self.assertRaises(Item.ConditionNotMet, self.letter.combine, self.door)
+    def test_when_letter_combined_with_door_and_door_looked_at_is_false_return_false(self):
+        self.assertFalse(self.letter.is_combination_possible(self.door))
 
     def test_doors_combined_with_letter(self):
         self.assertFalse(self.door.unique_attributes["combined_with_letter"])
         self.door.looked_at = True
         self.letter.combine(self.door)
         self.assertTrue(self.door.unique_attributes["combined_with_letter"])
+
+    def test_when_combined_correctly_return_true(self):
+        self.door.looked_at = True
+        self.assertTrue(self.letter.is_combination_possible(self.door))
 
 
 class KeyTestCase(TestCase):
