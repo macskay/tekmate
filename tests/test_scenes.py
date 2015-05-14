@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
-from tekmate.ui import NoteUI, ContextMenuUI
+from tekmate.items import Door, Letter
+from tekmate.ui import NoteUI, ContextMenuUI, DoorUI, LetterUI, PlayerUI
 
 try:
     from unittest import Mock, patch
@@ -131,6 +132,22 @@ class WorldSceneTestCase(TestCase):
         self.scene.set_context_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
         self.scene.open_context_menu((100, 100))
         self.assertEqual(self.scene.get_button_pressed((1, 71)), "Walk")
+
+    def test_when_combining_items_check_result(self):
+        door = DoorUI()
+        letter = LetterUI()
+        player_ui = Mock()
+
+        self.scene.current_selected_item = letter
+        self.scene.current_observed_item = door
+        self.scene.player_ui = player_ui
+        self.scene.combine_items()
+        player_ui.combine_items.assert_called_with(letter, door)
+
+    def test_when_select_item_store_current_observerd_item_into_current_selected_item(self):
+        self.scene.current_observed_item = 1
+        self.scene.select_item()
+        self.assertEqual(self.scene.current_selected_item, 1)
 
 
 class WorldSceneRenderTestCase(TestCase):

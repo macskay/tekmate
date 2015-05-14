@@ -43,6 +43,7 @@ class Item(object):
         self.look_at_message = "Look at"
         self.inspect_message = "Inspect"
         self.use_message = "Use"
+        self.use_not_usable_message = "Not Usable"
         self.unique_attributes = {}
         self.setup()
         self.fill_attributes()
@@ -64,8 +65,8 @@ class Item(object):
                     self.usable = True
                 elif key == "use":
                     self.use_message = value
-                else:
-                    raise Item.InvalidInput
+                elif key == "use_not_usable":
+                    self.use_not_usable_message = value
 
     def combine(self, other):  # pragma: no cover
         pass
@@ -87,11 +88,20 @@ class Item(object):
 
     def get_use_message(self):
         if not self.usable:
-            raise Item.NotUsable
+            return self.use_not_usable_message
         return self.use_message
 
     def get_inspect_message(self):
         return self.inspect_message
+
+    def is_combination_possible(self, other):  # pragma: no cover
+        pass
+
+    def change_look_at_message(self, other, new_look_at_key):
+        attributes = load_item_data(other.get_name())
+        for key, value in attributes.items():
+            if key == new_look_at_key:
+                other.look_at_message = value
 
 
 class Paperclip(Item):
@@ -196,13 +206,17 @@ class Letter(Item):
         self.obtainable = True
         self.name = "Letter"
 
-    def combine(self, other):
+    def is_combination_possible(self, other):
         if other.get_name() != "Door":
-            raise Item.InvalidCombination
+            return False
         if not other.looked_at:
-            raise Item.ConditionNotMet
+            return False
+        return True
+
+    def combine(self, other):
         self.remove_from_parent_container()
         other.unique_attributes["combined_with_letter"] = True
+        self.change_look_at_message(other, "look_at_after_letter")
 
 
 class SymbolsFolder(Item):
