@@ -166,7 +166,7 @@ class WorldScene(Scene):
     def use_item(self):
         return self.current_observed_item.use()
 
-    def inspect_item(self):     #  pragma: no cover
+    def inspect_item(self):     # pragma: no cover
         return self.current_observed_item.inspect()
 
     def select_item(self):
