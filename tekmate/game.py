@@ -11,7 +11,7 @@ class Player(object):
         pass
 
     def __init__(self):
-        self.position = (0, 0)
+        self.position = (0, 450)
         self.bag = []
 
     def add_item(self, item):

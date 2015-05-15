@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 from functools import partial
 import pygame
-import sys
 from taz.game import Scene, Game
+from tekmate.messages import MessageSystem
 
 from tekmate.ui import ContextMenuUI, PlayerUI, DoorUI, LetterUI
 
@@ -14,11 +14,13 @@ class WorldScene(Scene):
 
         self.context_menu = ContextMenuUI()
         self.player_ui = PlayerUI()
+        self.message_system = MessageSystem()
 
         self.world_item_sprite_group = pygame.sprite.OrderedUpdates()
         self.world_scene_sprite_group = pygame.sprite.OrderedUpdates()
         self.world_scene_sprite_group.add(self.player_ui)
         self.world_scene_context_group = pygame.sprite.OrderedUpdates()
+        self.display_text_group = pygame.sprite.GroupSingle()
 
         self.current_observed_item = None
         self.current_selected_item = None
@@ -46,6 +48,9 @@ class WorldScene(Scene):
                 self.handle_bag()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_F1:  # pragma: no cover (just debugging)
             print(self.current_selected_item.item.get_name() + " is currently selected.")
+        elif event.type == pygame.USEREVENT:
+            self.display_text_group.empty()
+            pygame.time.set_timer(pygame.USEREVENT, 0)
 
     def is_escape_key_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
@@ -134,9 +139,9 @@ class WorldScene(Scene):
         actions = {
             "Walk": lambda: partial(self.move_player, mouse_pos),
             "Take": lambda: partial(self.take_item, mouse_pos),
-            "Look at": lambda: partial(sys.stdout.write, self.look_at_item()),
-            "Use": lambda: partial(sys.stdout.write, self.use_item()),
-            "Inspect": lambda: partial(sys.stdout.write, self.inspect_item()),
+            "Look at": lambda: partial(self.show_display_text, self.look_at_item()),
+            "Use": lambda: partial(self.show_display_text, self.use_item()),
+            "Inspect": lambda: partial(self.show_display_text, self.inspect_item()),
             "Select": lambda: partial(self.select_item),
             "Combine": lambda: partial(self.combine_items)
         }
@@ -168,6 +173,11 @@ class WorldScene(Scene):
         item_name = self.current_selected_item.item.get_name()
         print("%s selected!" % item_name)
 
+    def show_display_text(self, message):
+        self.message_system.display_text(message, self.player_ui)
+        self.message_system.add(self.display_text_group)
+        pygame.time.set_timer(pygame.USEREVENT, 2000)
+
     def is_i_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_i
 
@@ -190,6 +200,7 @@ class WorldScene(Scene):
         if self.is_bag_visible():
             self.player_ui.bag_sprite_group.draw(self.display)
 
+        self.display_text_group.draw(self.display)
         self.world_scene_context_group.draw(self.display)
 
         pygame.display.flip()
