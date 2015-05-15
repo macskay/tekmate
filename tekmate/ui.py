@@ -51,6 +51,8 @@ class PlayerUI(pygame.sprite.Sprite):
     PLAYER_SUBSURFACE_SIZE = (50, 100)
     SCALING_FACTOR = 2.8
 
+    TEXT_COLOR = (0, 153, 255)
+
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.asset = UI.load_image("global", "player")
@@ -64,6 +66,7 @@ class PlayerUI(pygame.sprite.Sprite):
         self.player = Player()
 
         self.bag_visible = False
+        self.rect.move_ip(self.player.position)
 
     def set_image(self):
         image = self.asset.subsurface(pygame.Rect((0, 0), PlayerUI.PLAYER_SUBSURFACE_SIZE))
@@ -96,6 +99,9 @@ class PlayerUI(pygame.sprite.Sprite):
         if item_selected.item.is_combination_possible(item_observed.item):
             self.player.trigger_item_combination(item_selected.item, item_observed.item)
             item_selected.kill()
+
+    def get_position(self):
+        return self.rect
 
 
 class ContextMenuUI(pygame.sprite.Sprite):

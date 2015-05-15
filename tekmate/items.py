@@ -53,6 +53,7 @@ class Item(object):
         pass
 
     def fill_attributes(self):
+        value = ""
         actions = {
             "obtainable": lambda: partial(self.set_obtainable, value),
             "look_at": lambda: partial(self.set_look_at, value),
