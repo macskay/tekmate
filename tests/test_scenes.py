@@ -64,7 +64,7 @@ class WorldSceneTestCase(TestCase):
         self.assertIsNotNone(self.scene.context_menu)
 
     def test_world_space_sprite_group_not_none_by_default(self):
-        self.assertIsNotNone(self.scene.world_scene_sprite_group)
+        self.assertIsNotNone(self.scene.default_group)
 
     def test_when_right_mouse_pressed_return_true(self):
         mock_event = self.create_mouse_mock(3)
@@ -77,29 +77,29 @@ class WorldSceneTestCase(TestCase):
     def test_when_opening_context_menu_it_is_in_the_worlds_scene_group(self):
         self.scene.display = pygame.Surface((1, 1))
         self.scene.process_right_mouse_pressed((10, 10))
-        self.assertIn(self.scene.context_menu, self.scene.world_scene_context_group)
+        self.assertIn(self.scene.context_menu, self.scene.context_group)
 
     def test_when_clicked_on_other_than_menu_close_menu(self):
         self.create_context_menu_setup()
-        self.assertNotIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
+        self.assertNotIn(self.scene.context_menu, self.scene.default_group)
 
     def test_when_sright_clicked_select_correct_context_menu(self):
         note = NoteUI()
         note.rect.topleft = (0, 0)
-        self.scene.world_item_sprite_group.add(note)
+        self.scene.item_group.add(note)
         self.scene.select_correct_context_menu_list((10, 10))
         self.assertEqual(self.scene.context_menu.surface.get_height(), 90)
 
     def test_when_right_mouse_is_pressed_open_context_menu(self):
         mock_event = self.create_mouse_mock(3)
         self.scene.handle_input(mock_event)
-        self.assertIn(self.scene.context_menu, self.scene.world_scene_context_group)
+        self.assertIn(self.scene.context_menu, self.scene.context_group)
 
     def test_when_left_mouse_is_pressed_somewhere_other_than_context_menu_close_context_menu(self):
         self.scene.process_right_mouse_pressed((100, 210))
         mock_event = self.create_mouse_mock(1)
         self.scene.handle_input(mock_event)
-        self.assertNotIn(self.scene.context_menu, self.scene.world_scene_sprite_group)
+        self.assertNotIn(self.scene.context_menu, self.scene.default_group)
 
     def test_when_left_mouse_is_pressed_without_context_menu_open_move_player(self):
         pygame.display.set_mode((1920, 1080))

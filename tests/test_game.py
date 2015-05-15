@@ -6,7 +6,7 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     from mock import Mock, patch
 
-from tekmate.game import Player
+from tekmate.game import Player, Map
 from tekmate.items import Item
 
 
@@ -31,7 +31,7 @@ class PlayerTestCase(TestCase):
         self.not_obtainable_item = Item([])
 
     def test_player_position_defaults_at_zero_450(self):
-        self.assertEqual(self.player.position, (0, 450))
+        self.assertEqual(self.player.position, (0, 400))
 
     def test_when_when_picking_up_not_obtainable_item_raise_exception_and_size_of_bag_should_be_one(self):
         self.assertRaises(Item.NotObtainable, self.player.add_item, self.not_obtainable_item)
@@ -58,3 +58,9 @@ class PlayerTestCase(TestCase):
         self.player.trigger_item_combination(mock_item1, mock_item2)
         mock_item1.combine.assert_called_with(mock_item2)
         mock_item2.combine.assert_called_with(mock_item1)
+
+
+class MapTestCase(TestCase):
+    def test_when_creating_map_name_must_be_passed(self):
+        test_map = Map("TestMap")
+        self.assertEqual(test_map.name, "TestMap")

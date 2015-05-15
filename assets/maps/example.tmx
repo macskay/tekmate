@@ -4,7 +4,7 @@
   <image source="../images/title-background.png"/>
  </imagelayer>
  <objectgroup name="items">
-  <object id="1" name="note" type="item" x="928" y="384" width="32" height="32"/>
+  <object id="1" name="letter" type="item" x="928" y="384" width="32" height="32"/>
   <object id="18" name="door" type="item" x="32" y="480" width="32" height="64"/>
  </objectgroup>
  <objectgroup name="waypoints">
