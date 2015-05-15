@@ -14,7 +14,7 @@ class MessageSystem(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         pth = abspath(split(__file__)[0])
         sys.path.append(abspath(join(pth, u"..")))
-        self.font = pygame.font.Font(join("..", "assets", "global", "fonts", "RosesareFF0000.ttf"), 25)
+        self.font = pygame.font.Font(join(pth, "..", "assets", "global", "fonts", "RosesareFF0000.ttf"), 25)
 
     def display_text(self, message, actor):
         self.surface.fill((0, 0, 0))

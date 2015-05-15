@@ -30,8 +30,8 @@ class PlayerTestCase(TestCase):
         self.not_usable_item = Item([])
         self.not_obtainable_item = Item([])
 
-    def test_player_position_defaults_at_zero_zero(self):
-        self.assertEqual(self.player.position, (0, 0))
+    def test_player_position_defaults_at_zero_450(self):
+        self.assertEqual(self.player.position, (0, 450))
 
     def test_when_when_picking_up_not_obtainable_item_raise_exception_and_size_of_bag_should_be_one(self):
         self.assertRaises(Item.NotObtainable, self.player.add_item, self.not_obtainable_item)
