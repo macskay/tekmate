@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-import pygame
 from tekmate.items import Item
 
 

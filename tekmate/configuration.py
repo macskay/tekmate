@@ -122,8 +122,8 @@ class MapLoader(object):
 
     def create_exits(self, exits):
         exit_dict = dict()
-        for exit in exits:
-            exit_dict[(exit.x, exit.y)] = exit.name
+        for exit_of_map in exits:
+            exit_dict[(exit_of_map.x, exit_of_map.y)] = exit_of_map.name
         return exit_dict
 
     def set_map_properties(self, tmx, new_map):

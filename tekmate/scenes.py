@@ -4,7 +4,7 @@ import pygame
 from taz.game import Scene, Game
 from tekmate.messages import MessageSystem
 
-from tekmate.ui import ContextMenuUI, PlayerUI, DoorUI, LetterUI
+from tekmate.ui import ContextMenuUI, PlayerUI
 
 
 class WorldScene(Scene):
@@ -216,9 +216,9 @@ class WorldScene(Scene):
     def tear_down(self):  # pragma: no cover
         print("Tearing-Down World")
 
-    def change_map(self, map):
-        self.background_group.add(map.background)
-        for item in map.items:
+    def change_map(self, map_to_load):
+        self.background_group.add(map_to_load.background)
+        for item in map_to_load.items:
             self.item_group.add(item)
-        self.waypoints = map.waypoints
+        self.waypoints = map_to_load.waypoints
 
