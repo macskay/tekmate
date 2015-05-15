@@ -49,7 +49,7 @@ class PlayerUI(pygame.sprite.Sprite):
     COLOR_KEY = (0, 128, 128)
 
     PLAYER_SUBSURFACE_SIZE = (50, 100)
-    SCALING_FACTOR = 2.8
+    SCALING_FACTOR = 1.5
 
     TEXT_COLOR = (0, 153, 255)
 
@@ -214,26 +214,28 @@ class NoteUI(ItemUI):
         self.image = UI.load_image("items", "note")
         self.image = pygame.transform.scale(self.image, (100, 100))
         self.rect = self.image.get_rect()
-        self.rect.topleft = (800, 100)
         self.item = Note([])
 
 
 class DoorUI(ItemUI):
     def setup(self):
         self.image = UI.load_image("items", "door")
-        self.image = pygame.transform.scale(self.image, (100, 150))
+        self.image = pygame.transform.scale(self.image, (50, 70))
         self.rect = self.image.get_rect()
-        self.rect.topleft = (1500, 100)
         self.item = Door([])
 
 
 class LetterUI(ItemUI):
     def setup(self):
         self.image = UI.load_image("items", "note")
-        self.image = pygame.transform.scale(self.image, (100, 150))
+        self.image = pygame.transform.scale(self.image, (50, 70))
         self.rect = self.image.get_rect()
-        self.rect.topleft = (100, 100)
         self.item = Letter([])
 
 
-
+class BackgroundUI(pygame.sprite.Sprite):
+    def __init__(self, background):
+        pygame.sprite.Sprite.__init__(self)
+        path = os.path.split(background.source)
+        self.image = UI.load_image(path[0][3:], path[1][:-4])
+        self.rect = self.image.get_rect()

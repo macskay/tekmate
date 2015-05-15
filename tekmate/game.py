@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import pygame
 from tekmate.items import Item
 
 
@@ -11,7 +12,7 @@ class Player(object):
         pass
 
     def __init__(self):
-        self.position = (0, 450)
+        self.position = (0, 400)
         self.bag = []
 
     def add_item(self, item):
@@ -28,3 +29,13 @@ class Player(object):
         if item1 in self.bag:
             return item1.get_inspect_message()
         return item1.get_look_at_message()
+
+
+class Map(object):
+    def __init__(self, name):
+        self.name = name
+        self.items = list()
+        self.exits = dict()
+        self.waypoints = list()
+        self.background = None
+

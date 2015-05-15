@@ -16,11 +16,13 @@ class WorldScene(Scene):
         self.player_ui = PlayerUI()
         self.message_system = MessageSystem()
 
-        self.world_item_sprite_group = pygame.sprite.OrderedUpdates()
-        self.world_scene_sprite_group = pygame.sprite.OrderedUpdates()
-        self.world_scene_sprite_group.add(self.player_ui)
-        self.world_scene_context_group = pygame.sprite.OrderedUpdates()
+        self.waypoints = list()
+
+        self.item_group = pygame.sprite.OrderedUpdates()
+        self.default_group = pygame.sprite.OrderedUpdates()
+        self.context_group = pygame.sprite.OrderedUpdates()
         self.display_text_group = pygame.sprite.GroupSingle()
+        self.background_group = pygame.sprite.GroupSingle()
 
         self.current_observed_item = None
         self.current_selected_item = None
@@ -28,9 +30,8 @@ class WorldScene(Scene):
     def initialize(self):  # pragma: no cover
         self.display = self.game.render_context["display"]
 
-        # ADDING AN ITEM FOR TESTING
-        self.world_item_sprite_group.add(LetterUI())
-        self.world_item_sprite_group.add(DoorUI())
+        self.change_map(self.game.update_context["maps"]["example"])
+        self.default_group.add(self.player_ui)
 
     def update(self):
         for event in self.game.update_context["get_events"]():
@@ -48,7 +49,7 @@ class WorldScene(Scene):
                 self.handle_bag()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_F1:  # pragma: no cover (just debugging)
             print(self.current_selected_item.item.get_name() + " is currently selected.")
-        elif event.type == pygame.USEREVENT:
+        elif event.type == pygame.USEREVENT:  # pragma: no cover
             self.display_text_group.empty()
             pygame.time.set_timer(pygame.USEREVENT, 0)
 
@@ -77,7 +78,7 @@ class WorldScene(Scene):
         return False
 
     def is_mouse_pos_inside_world_item(self, pos):
-        for item in self.world_item_sprite_group.sprites():
+        for item in self.item_group.sprites():
             if item.rect.collidepoint(pos):  # pragma: no cover (implicit else, nothing happening here)
                 self.current_observed_item = item
                 return True
@@ -107,7 +108,7 @@ class WorldScene(Scene):
 
     def open_context_menu(self, pos):
         self.context_menu.open(pos)
-        self.context_menu.add(self.world_scene_context_group)
+        self.context_menu.add(self.context_group)
 
     def is_left_mouse_pressed(self, event):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
@@ -188,20 +189,21 @@ class WorldScene(Scene):
             self.player_ui.bag_visible = False
 
     def close_context_menu(self):
-        self.context_menu.remove(self.world_scene_context_group)
+        self.context_menu.remove(self.context_group)
         self.current_observed_item = None
 
     def render(self):
         self.display.fill((0, 0, 0))
 
-        self.world_item_sprite_group.draw(self.display)
-        self.world_scene_sprite_group.draw(self.display)
+        self.background_group.draw(self.display)
+        self.item_group.draw(self.display)
+        self.default_group.draw(self.display)
 
         if self.is_bag_visible():
             self.player_ui.bag_sprite_group.draw(self.display)
 
         self.display_text_group.draw(self.display)
-        self.world_scene_context_group.draw(self.display)
+        self.context_group.draw(self.display)
 
         pygame.display.flip()
 
@@ -213,3 +215,10 @@ class WorldScene(Scene):
 
     def tear_down(self):  # pragma: no cover
         print("Tearing-Down World")
+
+    def change_map(self, map):
+        self.background_group.add(map.background)
+        for item in map.items:
+            self.item_group.add(item)
+        self.waypoints = map.waypoints
+

@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
 
-from mock import patch
+from mock import patch, Mock
 import pygame
 
-from tekmate.configuration import PyGameInitializer, TekmateFactory
+from tekmate.configuration import PyGameInitializer, TekmateFactory, MapLoader
 from tekmate.scenes import WorldScene
 
 
@@ -61,3 +61,19 @@ class TekmateFactoryTestCase(TestCase):
 
     def test_create_should_push_world_scene_to_game(self):
         self.assertEqual(self.game.get_name_of_top_scene(), "world")
+
+
+class MapLoaderTestCase(TestCase):
+    def setUp(self):
+        pygame.init()
+        pygame.display.set_mode((1, 1))
+        self.map_loader = MapLoader()
+
+    def test_when_tmx_added_len_of_tmx_list_is_not_none(self):
+        self.map_loader.fill_tmx()
+        self.assertNotEqual(len(self.map_loader.tmx_dict), 0)
+
+    def test_when_created_map_dict_is_not_none(self):
+        self.map_loader.fill_tmx()
+        self.map_loader.create_maps()
+        self.assertNotEqual(len(self.map_loader.map_dict), 0)
