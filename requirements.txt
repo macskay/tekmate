@@ -8,4 +8,4 @@ pyscroll==2.14.2
 mock==1.0.1
 hg+http://bitbucket.org/pygame/pygame
 python-coveralls==2.5.0
-hg+https://github.com/bitcraft/animation
+git+https://github.com/bitcraft/animation.git
