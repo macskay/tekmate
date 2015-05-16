@@ -38,3 +38,12 @@ class Map(object):
         self.waypoints = list()
         self.background = None
 
+
+class Waypoint(object):
+    def __init__(self, name):
+        self.neighbors = list()
+        self.name = name
+        self.pos = None
+        self.is_spawn = False
+        self.height = 32
+        self.width = 32

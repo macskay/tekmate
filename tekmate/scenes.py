@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 from functools import partial
+import math
 import pygame
 from taz.game import Scene, Game
 from tekmate.messages import MessageSystem
@@ -164,11 +165,41 @@ class WorldScene(Scene):
             self.move_player(self.current_observed_item.rect.center, callback)
 
     def move_player(self, pos, callback=None):
+        closest_waypoint = self.find_closest_waypoint_to_destination(pos)
+        self.print_closest_neighbors(closest_waypoint)
+        self.start_animation(callback, pos)
+
+    def find_closest_waypoint_to_destination(self, pos):
+        closest_waypoint = None
+        smallest_distance = 3000
+        for waypoint in self.waypoints:
+            distance = self.calculate_euclidean_distance(pos, waypoint)
+            if distance < smallest_distance:
+                smallest_distance = distance
+                closest_waypoint = waypoint
+        return closest_waypoint
+
+    def print_closest_neighbors(self, closest_waypoint):
+        print("Closed Waypoint: %s" % closest_waypoint.name)
+        print("Closed Waypoint's neighbors: %s\n" % closest_waypoint.neighbors)
+        for waypoint in self.waypoints:
+            if waypoint.pos == self.player_ui.rect.bottomleft:
+                print("My waypoint: %s" % waypoint.name)
+                print("My neighbors: %s\n" % waypoint.neighbors)
+
+    def start_animation(self, callback, pos):
         ani = self.player_ui.move(pos)
         if callback is not None:  # pragma: no cover
             ani.callback = lambda: callback()
         ani.start(self.player_ui.rect)
         self.animation_group.add(ani)
+
+    def calculate_euclidean_distance(self, pos, waypoint):
+        waypoint_center_x = waypoint.pos[0]+waypoint.width / 2
+        waypoint_center_y = waypoint.pos[1]-waypoint.height / 2
+        euclidean_distance = int(math.sqrt((pos[0]-waypoint_center_x)*(pos[0]-waypoint_center_x) +
+                                           (pos[1]-waypoint_center_y)*(pos[1]-waypoint_center_y)))
+        return euclidean_distance
 
     def take_item(self):  # pragma: no cover
         self.player_ui.add_item(self.current_observed_item)
@@ -242,7 +273,21 @@ class WorldScene(Scene):
 
     def change_map(self, map_to_load):
         self.background_group.add(map_to_load.background)
+        self.load_items(map_to_load)
+        self.waypoints = map_to_load.waypoints
+        self.find_spawn_for_player()
+
+    def load_items(self, map_to_load):
         for item in map_to_load.items:
             self.item_group.add(item)
-        self.waypoints = map_to_load.waypoints
+
+    def find_spawn_for_player(self):
+        for waypoint in self.waypoints:
+            if waypoint.is_spawn:
+                self.set_player_start(waypoint)
+
+    def set_player_start(self, waypoint):
+        self.player_ui.rect.bottomleft = waypoint.pos
+
+
 

@@ -49,7 +49,7 @@ class UI(object):
 class PlayerUI(pygame.sprite.Sprite):
     COLOR_KEY = (0, 128, 128)
 
-    PLAYER_SUBSURFACE_SIZE = (50, 100)
+    PLAYER_SUBSURFACE_SIZE = (40, 90)
     SCALING_FACTOR = 1.5
 
     TEXT_COLOR = (0, 153, 255)
@@ -70,7 +70,7 @@ class PlayerUI(pygame.sprite.Sprite):
         self.rect.move_ip(self.player.position)
 
     def set_image(self):
-        image = self.asset.subsurface(pygame.Rect((0, 0), PlayerUI.PLAYER_SUBSURFACE_SIZE))
+        image = self.asset.subsurface(pygame.Rect((10, 0), PlayerUI.PLAYER_SUBSURFACE_SIZE))
         image = pygame.transform.scale(image, self.get_image_proportions(image))
         image.set_colorkey(PlayerUI.COLOR_KEY)
         return image
@@ -80,12 +80,9 @@ class PlayerUI(pygame.sprite.Sprite):
             int(round(PlayerUI.SCALING_FACTOR * image.get_height()))
 
     def move(self, dest_pos):
-        dest = dest_pos[0]-self.rect.width/2
-        if UI.is_new_pos_hiding_current_object_at_right_side(dest_pos, self.rect.width):
-            dest = dest_pos[0]-self.rect.width
-        if UI.is_new_pos_hiding_current_object_at_left_side(dest_pos, self.rect.width):   # pragma: no cover
-            dest = 0
-        ani = Animation(x=dest, duration=2000, round_values=True, transition='in_out_sine')
+        dest_x = dest_pos[0]-self.rect.width/2
+        dest_y = dest_pos[1]-self.rect.height
+        ani = Animation(x=dest_x, y=dest_y, duration=2000, round_values=True, transition='in_out_sine')
         return ani
 
     def add_item(self, item_ui):  # pragma: no cover
@@ -223,7 +220,7 @@ class NoteUI(ItemUI):
 class DoorUI(ItemUI):
     def setup(self):
         self.image = UI.load_image("items", "door")
-        self.image = pygame.transform.scale(self.image, (50, 70))
+        self.image = pygame.transform.scale(self.image, (64, 96))
         self.rect = self.image.get_rect()
         self.item = Door([])
 
@@ -231,7 +228,7 @@ class DoorUI(ItemUI):
 class LetterUI(ItemUI):
     def setup(self):
         self.image = UI.load_image("items", "note")
-        self.image = pygame.transform.scale(self.image, (50, 70))
+        self.image = pygame.transform.scale(self.image, (32, 64))
         self.rect = self.image.get_rect()
         self.item = Letter([])
 

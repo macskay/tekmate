@@ -6,7 +6,7 @@ import pygame
 from pytmx.util_pygame import load_pygame
 import sys
 from taz.game import Game
-from tekmate.game import Map
+from tekmate.game import Map, Waypoint
 
 from tekmate.scenes import WorldScene
 from tekmate.ui import DoorUI, LetterUI, BackgroundUI
@@ -117,7 +117,15 @@ class MapLoader(object):
     def create_waypoints(self, waypoints):
         wp_list = []
         for waypoint in waypoints:
-            wp_list.append((waypoint.x, waypoint.y))
+            wp = Waypoint(waypoint.name)
+            wp.pos = (waypoint.x, waypoint.y+waypoint.height)
+            for property in waypoint.properties:
+                if property == "spawn":
+                    wp.is_spawn = True
+                if property == "connect":
+                    wp.neighbors = self.find_neighbors(waypoint)
+            wp_list.append(wp)
+
         return wp_list
 
     def create_exits(self, exits):
@@ -132,6 +140,10 @@ class MapLoader(object):
     def set_background(self, new_map, tmx):
         background_layer = tmx.get_layer_by_name("background")
         new_map.background = BackgroundUI(background_layer)
+
+    def find_neighbors(self, waypoint):
+        return waypoint.properties["connect"].split(", ")
+
 
 
 
