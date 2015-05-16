@@ -7,6 +7,7 @@ from os.path import abspath, split, join
 import pygame
 from tekmate.game import Player
 from tekmate.items import Note, Door, Letter
+from pygameanimation.animation import Animation
 
 
 class UI(object):
@@ -78,14 +79,16 @@ class PlayerUI(pygame.sprite.Sprite):
         return int(round(PlayerUI.SCALING_FACTOR * image.get_width())), \
             int(round(PlayerUI.SCALING_FACTOR * image.get_height()))
 
-    def move(self, mouse_pos):
-        self.rect.centerx = mouse_pos[0]
-        if UI.is_new_pos_hiding_current_object_at_right_side(mouse_pos, self.rect.width):
-            self.rect.right = mouse_pos[0]
-        if UI.is_new_pos_hiding_current_object_at_left_side(mouse_pos, self.rect.width):
-            self.rect.left = 0
+    def move(self, dest_pos):
+        dest = dest_pos[0]-self.rect.width/2
+        if UI.is_new_pos_hiding_current_object_at_right_side(dest_pos, self.rect.width):
+            dest = dest_pos[0]-self.rect.width
+        if UI.is_new_pos_hiding_current_object_at_left_side(dest_pos, self.rect.width):   # pragma: no cover
+            dest = 0
+        ani = Animation(x=dest, duration=2000, round_values=True, transition='in_out_sine')
+        return ani
 
-    def add_item(self, item_ui):
+    def add_item(self, item_ui):  # pragma: no cover
         self.player.add_item(item_ui.item)
         item_ui.kill()
         self.bag_sprite_group.add(item_ui)
@@ -100,7 +103,7 @@ class PlayerUI(pygame.sprite.Sprite):
             self.player.trigger_item_combination(item_selected.item, item_observed.item)
             item_selected.kill()
 
-    def get_position(self):
+    def get_position(self):  # pragma: no cover
         return self.rect
 
 
@@ -150,7 +153,7 @@ class ContextMenuUI(pygame.sprite.Sprite):
         self.rect.topleft = pos
 
         width = ContextMenuUI.MENU_ITEM_WIDTH
-        height = ContextMenuUI.MENU_ITEM_HEIGHT
+        height = ContextMenuUI.MENU_ITEM_HEIGHT*len(self.current_layout)
         if UI.is_new_pos_hiding_current_object_at_bottom(pos, height):
             self.rect.bottomleft = pos
         if UI.is_new_pos_hiding_current_object_at_right_side(pos, width):
@@ -196,7 +199,7 @@ class ItemUI(pygame.sprite.Sprite):
     def look_at(self):
         return self.item.get_look_at_message()
 
-    def use(self):
+    def use(self):  # pragma: no cover
         return self.item.get_use_message()
 
     def inspect(self):

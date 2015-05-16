@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 from functools import partial
 import pygame
+from pygameanimation import Animation
 from taz.game import Scene, Game
 from tekmate.messages import MessageSystem
 
@@ -23,6 +24,7 @@ class WorldScene(Scene):
         self.context_group = pygame.sprite.OrderedUpdates()
         self.display_text_group = pygame.sprite.GroupSingle()
         self.background_group = pygame.sprite.GroupSingle()
+        self.animation_group = pygame.sprite.GroupSingle()
 
         self.current_observed_item = None
         self.current_selected_item = None
@@ -34,6 +36,10 @@ class WorldScene(Scene):
         self.default_group.add(self.player_ui)
 
     def update(self):
+        clock = self.game.update_context["clock"]
+        delta = clock.tick(60)
+
+        self.animation_group.update(delta)
         for event in self.game.update_context["get_events"]():
             self.handle_input(event)
 
@@ -60,6 +66,8 @@ class WorldScene(Scene):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 3
 
     def process_right_mouse_pressed(self, pos):  # pragma: no cover
+        if len(self.animation_group) > 0:
+            self.animation_group.empty()
         clicked_in_bag_but_not_on_item = self.select_correct_context_menu_list(pos)
         if clicked_in_bag_but_not_on_item:
             self.close_context_menu()
@@ -120,10 +128,6 @@ class WorldScene(Scene):
             if not self.is_bag_visible():  # pragma: no cover (implicit else)
                 self.move_player(event.pos)
 
-    def combine_items(self):
-        self.player_ui.combine_items(self.current_selected_item, self.current_observed_item)
-        self.current_selected_item = None
-
     def is_context_menu_visible(self):
         return self.context_menu.alive()
 
@@ -139,12 +143,12 @@ class WorldScene(Scene):
     def process_button_command(self, mouse_pos):   # pragma: no cover
         actions = {
             "Walk": lambda: partial(self.move_player, mouse_pos),
-            "Take": lambda: partial(self.take_item, mouse_pos),
-            "Look at": lambda: partial(self.show_display_text, self.look_at_item()),
-            "Use": lambda: partial(self.show_display_text, self.use_item()),
+            "Take": lambda: partial(self.walk_to_item_before_interacting, self.take_item),
+            "Look at": lambda: partial(self.walk_to_item_before_interacting, self.look_at_item),
+            "Use": lambda: partial(self.walk_to_item_before_interacting, self.use_item),
             "Inspect": lambda: partial(self.show_display_text, self.inspect_item()),
             "Select": lambda: partial(self.select_item),
-            "Combine": lambda: partial(self.combine_items)
+            "Combine": lambda: partial(self.walk_to_item_before_interacting, self.combine_items)
         }
         item_pressed = self.get_button_pressed(mouse_pos)
         actions[item_pressed]()()
@@ -153,26 +157,48 @@ class WorldScene(Scene):
     def get_button_pressed(self, mouse_pos):
         return self.context_menu.get_button_pressed(mouse_pos)
 
-    def move_player(self, pos):
-        self.player_ui.move(pos)
+    def walk_to_item_before_interacting(self, callback):
+        print(abs(self.player_ui.rect.left - self.current_observed_item.rect.left))
+        if abs(self.player_ui.rect.left - self.current_observed_item.rect.left) < 100:
+            callback()
+        else:  # pragma: no cover
+            self.move_player(self.current_observed_item.rect.center, callback)
 
-    def take_item(self, mouse_pos):
-        self.move_player(mouse_pos)
+    def move_player(self, pos, callback=None):
+        ani = self.player_ui.move(pos)
+        if callback is not None:  # pragma: no cover
+            ani.callback = lambda: callback()
+        ani.start(self.player_ui.rect)
+        self.animation_group.add(ani)
+
+    def take_item(self):  # pragma: no cover
         self.player_ui.add_item(self.current_observed_item)
+        item_name = self.get_name_of_item()
+        self.show_display_text("Alright, I think I'll take that %s with me!" % item_name)
+        self.current_observed_item = None
+
+    def combine_items(self):
+        self.player_ui.combine_items(self.current_selected_item, self.current_observed_item)
+        self.look_at_item()
+        self.current_selected_item = None
+        self.current_observed_item = None
 
     def look_at_item(self):
-        return self.current_observed_item.look_at()
+        self.show_display_text(self.current_observed_item.look_at())
 
-    def use_item(self):
-        return self.current_observed_item.use()
+    def use_item(self):  # pragma: no cover
+        self.show_display_text(self.current_observed_item.use())
 
     def inspect_item(self):     # pragma: no cover
         return self.current_observed_item.inspect()
 
+    def get_name_of_item(self):
+        return self.current_observed_item.item.get_name()
+
     def select_item(self):
         self.current_selected_item = self.current_observed_item
-        item_name = self.current_selected_item.item.get_name()
-        print("%s selected!" % item_name)
+        item_name = self.get_name_of_item()
+        self.show_display_text("What should I do with this %s?" % item_name)
 
     def show_display_text(self, message):
         self.message_system.display_text(message, self.player_ui)
@@ -190,7 +216,6 @@ class WorldScene(Scene):
 
     def close_context_menu(self):
         self.context_menu.remove(self.context_group)
-        self.current_observed_item = None
 
     def render(self):
         self.display.fill((0, 0, 0))
