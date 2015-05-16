@@ -166,7 +166,7 @@ class WorldScene(Scene):
 
     def move_player(self, pos, callback=None):
         closest_waypoint = self.find_closest_waypoint_to_destination(pos)
-        self.print_closest_neighbors(closest_waypoint)
+        # self.print_closest_neighbors(closest_waypoint)
         self.start_animation(callback, pos)
 
     def find_closest_waypoint_to_destination(self, pos):

@@ -42,7 +42,7 @@ class WorldSceneTestCase(TestCase):
 
     def create_mouse_mock(self, button_nr):
             class MockEvent:
-                pos = (150, 200)
+                pos = (120, 200)
                 button = button_nr
                 type = pygame.MOUSEBUTTONDOWN
                 pygame.key = None
@@ -191,7 +191,7 @@ class WorldSceneUpdateTestCase(TestCase):
         mock_event = self.create_mouse_mock(1)
         self.scene.game.update_context = {"get_events": lambda: [mock_event], "clock": pygame.time.Clock()}
         self.scene.update()
-        self.assertEqual(self.scene.player_ui.rect.centerx, 37)
+        self.assertEqual(self.scene.player_ui.rect.centerx, 30)
 
     def test_when_i_pressed_handle_bag(self):
         self.scene.game = Mock()
