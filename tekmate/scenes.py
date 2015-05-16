@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 from functools import partial
 import pygame
-from pygameanimation import Animation
 from taz.game import Scene, Game
 from tekmate.messages import MessageSystem
 
