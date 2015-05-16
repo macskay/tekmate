@@ -31,7 +31,8 @@ class WorldSceneTestCase(TestCase):
         mock_event.key = eventkey
         mock_event.button = eventbutton
         update_context = {
-            "get_events": lambda: [mock_event]
+            "get_events": lambda: [mock_event],
+            "clock": pygame.time.Clock()
         }
         render_context = {
             "player_ui": None
@@ -105,20 +106,7 @@ class WorldSceneTestCase(TestCase):
         pygame.display.set_mode((1920, 1080))
         mock_event = self.create_mouse_mock(1)
         self.scene.process_left_mouse_button_pressed(mock_event)
-        self.assertEqual(self.scene.player_ui.rect.centerx, mock_event.pos[0])
-
-    def test_when_use_item_is_called_return_use_message_of_item(self):
-        self.scene.current_observed_item = NoteUI()
-        self.assertEqual(self.scene.use_item(), "I can't use that!")
-
-    def test_when_look_at_item_is_called_return_look_at_message_of_item(self):
-        self.scene.current_observed_item = NoteUI()
-        self.assertEqual(self.scene.look_at_item(), "This is a Note.")
-
-    def test_when_take_item_is_called_item_gets_transferred_to_bag_and_killed_from_world_sprite_group(self):
-        self.scene.current_observed_item = NoteUI()
-        self.scene.take_item((10, 10))
-        self.assertIn(self.scene.current_observed_item, self.scene.player_ui.bag_sprite_group)
+        self.assertEqual(self.scene.player_ui.rect.right*2, mock_event.pos[0])
 
     @patch("tekmate.scenes.WorldScene.get_button_pressed")
     def test_when_processing_a_command_the_respective_message_should_come_back(self, mock_get_button):
@@ -137,6 +125,7 @@ class WorldSceneTestCase(TestCase):
         door = DoorUI()
         letter = LetterUI()
         player_ui = Mock()
+        player_ui.TEXT_COLOR = (0, 0, 0)
 
         self.scene.current_selected_item = letter
         self.scene.current_observed_item = door
@@ -200,21 +189,21 @@ class WorldSceneUpdateTestCase(TestCase):
     def test_render_calls_world_scene_group_update(self):
         self.scene.game = Mock()
         mock_event = self.create_mouse_mock(1)
-        self.scene.game.update_context = {"get_events": lambda: [mock_event]}
+        self.scene.game.update_context = {"get_events": lambda: [mock_event], "clock": pygame.time.Clock()}
         self.scene.update()
-        self.assertEqual(self.scene.player_ui.rect.centerx, mock_event.pos[0])
+        self.assertEqual(self.scene.player_ui.rect.centerx, 37)
 
     def test_when_i_pressed_handle_bag(self):
         self.scene.game = Mock()
         mock_event = self.create_key_event(pygame.K_i)
-        self.scene.game.update_context = {"get_events": lambda: [mock_event]}
+        self.scene.game.update_context = {"get_events": lambda: [mock_event], "clock": pygame.time.Clock()}
         self.scene.update()
         self.assertTrue(self.scene.player_ui.is_bag_visible())
 
     def test_when_i_pressed_close_bag_if_open(self):
         self.scene.game = Mock()
         mock_event = self.create_key_event(pygame.K_i)
-        self.scene.game.update_context = {"get_events": lambda: [mock_event]}
+        self.scene.game.update_context = {"get_events": lambda: [mock_event], "clock": pygame.time.Clock()}
         self.scene.player_ui.bag_visible = True
         self.scene.update()
         self.assertFalse(self.scene.player_ui.is_bag_visible())

@@ -81,7 +81,7 @@ class PlayerUITestCase(TestCase):
 
     def test_when_moved_to_far_right_the_player_position_is_forced(self):
         self.ui.move((1920, 10))
-        self.assertEqual(self.ui.rect.right, 1920)
+        self.assertEqual(self.ui.rect.right, 75)
 
 
 class NoteUITestCase(TestCase):

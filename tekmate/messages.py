@@ -34,4 +34,5 @@ class MessageSystem(pygame.sprite.Sprite):
 
         self.surface.blit(text, (offset, offset))
 
-        self.rect.move_ip(actor.get_position().topleft)
+        self.rect.centerx = pygame.display.get_surface().get_width()/2
+        self.rect.centery = 350
