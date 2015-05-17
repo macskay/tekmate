@@ -52,15 +52,21 @@ class UI(object):
 class PlayerUI(pygame.sprite.Sprite):
     COLOR_KEY = (0, 128, 128)
 
-    PLAYER_SUBSURFACE_SIZE = (40, 90)
+    PLAYER_SUBSURFACE_SIZE = (47, 90)
     SCALING_FACTOR = 1.5
 
     TEXT_COLOR = (0, 153, 255)
 
+    IDLE = (0, 0)
+
+    START_WALK = (0, 100)
+
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
+        self.direction = 1
         self.asset = UI.load_image("global", "player")
-        self.image = self.set_image()
+        self.image = None
+        self.set_image(PlayerUI.IDLE)
         self.rect = self.image.get_rect()
         self.bag_sprite_group = pygame.sprite.OrderedUpdates()
 
@@ -73,12 +79,21 @@ class PlayerUI(pygame.sprite.Sprite):
         self.rect.move_ip(self.player.position)
 
         self.waypoints = None
+        self.current_index_height = 1
+        self.current_index_width = 1
 
-    def set_image(self):
-        image = self.asset.subsurface(pygame.Rect((10, 0), PlayerUI.PLAYER_SUBSURFACE_SIZE))
+        self.is_walking = False
+
+    def set_image(self, offset):
+        image = self.asset.subsurface(pygame.Rect(offset, PlayerUI.PLAYER_SUBSURFACE_SIZE))
         image = pygame.transform.scale(image, self.get_image_proportions(image))
         image.set_colorkey(PlayerUI.COLOR_KEY)
-        return image
+        if self.is_direction_left():
+            image = pygame.transform.flip(image, True, False)
+        self.image = image
+
+    def is_direction_left(self):
+        return self.direction == -1
 
     def get_image_proportions(self, image):
         return int(round(PlayerUI.SCALING_FACTOR * image.get_width())), \
@@ -87,10 +102,10 @@ class PlayerUI(pygame.sprite.Sprite):
     def move(self, dest_pos):
         dest_x = dest_pos[0] - self.rect.width + self.rect.width
         dest_y = dest_pos[1] - self.rect.height
-        ani = Animation(x=dest_x, y=dest_y, duration=500, round_values=True, transition='out_sine')
+        ani = Animation(x=dest_x, y=dest_y, duration=750, round_values=True, transition='in_out_sine')
         return ani
 
-    def add_item(self, item_ui):  # pragma: no cover
+    def add_item(self, item_ui):
         self.player.add_item(item_ui.item)
         item_ui.kill()
         self.bag_sprite_group.add(item_ui)
@@ -108,7 +123,8 @@ class PlayerUI(pygame.sprite.Sprite):
     def get_position(self):
         return self.rect
 
-    def find_shortest_path_to_destination(self, pos):
+    def find_shortest_path_to_destination(self, pos, direction):
+        self.direction = direction
         start_node = self.get_start_node()
         end_node = self.get_closest_node_to_pos(pos)
 
@@ -143,6 +159,23 @@ class PlayerUI(pygame.sprite.Sprite):
 
     def set_player_start(self, waypoint):
         self.rect.bottomleft = waypoint.pos
+
+    def update(self):
+        new_offset = (self.current_index_width, self.current_index_height)
+        self.set_image(new_offset)
+
+    def reset_walk(self):
+        self.current_index_height = 1
+        self.current_index_width = 1
+        self.is_walking = False
+
+    def animate_walk(self):
+        if not self.is_walking:
+            self.current_index_height = 100
+            self.is_walking = True
+        self.current_index_width += 50
+        if self.current_index_width > 300:
+            self.current_index_width = 1
 
 
 class ContextMenuUI(pygame.sprite.Sprite):

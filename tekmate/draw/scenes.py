@@ -42,8 +42,17 @@ class WorldScene(Scene):
         delta = clock.tick(60)
 
         self.animation_group.update(delta)
+        self.stop_animation_if_needed()
+
         for event in self.game.update_context["get_events"]():
             self.handle_input(event)
+
+        self.default_group.update()
+
+    def stop_animation_if_needed(self):
+        if len(self.animation_group) == 0:
+            self.player_ui.reset_walk()
+            pygame.time.set_timer(pygame.USEREVENT + 1, 0)
 
     def handle_input(self, event):
         if event.type == pygame.QUIT or self.is_escape_key_pressed(event):
@@ -58,6 +67,8 @@ class WorldScene(Scene):
         elif event.type == pygame.USEREVENT:
             self.display_text_group.empty()
             pygame.time.set_timer(pygame.USEREVENT, 0)
+        elif event.type == pygame.USEREVENT+1:
+            self.player_ui.animate_walk()
 
     def is_escape_key_pressed(self, event):
         return event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
@@ -164,9 +175,19 @@ class WorldScene(Scene):
             self.move_player(self.current_observed_item.rect.center, callback)
 
     def move_player(self, pos, callback=None):
-        self.best_path = self.find_shortest_path_to_destination(pos)
+        direction = self.get_direction(pos)
+        self.best_path = self.find_shortest_path_to_destination(pos, direction)
         self.callback = callback
         self.move_to_next_waypoint()
+
+    def get_direction(self, pos):
+        if pos[0] > self.player_ui.rect.left:
+            return 1
+        else:
+            return -1
+
+    def find_shortest_path_to_destination(self, pos, dir):
+        return self.player_ui.find_shortest_path_to_destination(pos, dir)
 
     def move_to_next_waypoint(self):
         if len(self.best_path) > 1:
@@ -184,15 +205,13 @@ class WorldScene(Scene):
         self.best_path.pop(0)
         self.start_animation(self.callback, pos)
 
-    def find_shortest_path_to_destination(self, pos):
-        return self.player_ui.find_shortest_path_to_destination(pos)
-
     def start_animation(self, callback, pos):
         ani = self.player_ui.move(pos)
         if callback is not None:
             ani.callback = lambda: callback()
         ani.start(self.player_ui.rect)
         self.animation_group.add(ani)
+        pygame.time.set_timer(pygame.USEREVENT+1, 100)
 
     def take_item(self):
         self.player_ui.add_item(self.current_observed_item)
@@ -245,6 +264,7 @@ class WorldScene(Scene):
 
         self.background_group.draw(self.display)
         self.item_group.draw(self.display)
+
         self.default_group.draw(self.display)
 
         if self.is_bag_visible():
