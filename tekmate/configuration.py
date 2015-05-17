@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
 from glob import glob
-
 from os.path import join, splitext, abspath, split
+import sys
+
 import pygame
 from pytmx.util_pygame import load_pygame
-import sys
 from taz.game import Game
-from tekmate.game import Map
 
-from tekmate.scenes import WorldScene
-from tekmate.ui import DoorUI, LetterUI, BackgroundUI
+from tekmate.game import Map, Waypoint
+from tekmate.draw.scenes import WorldScene
+from tekmate.draw.ui import DoorUI, LetterUI, BackgroundUI
 
 
 class PyGameInitializer(object):
@@ -38,7 +38,7 @@ class PyGameInitializer(object):
         base_path = join("assets", "global")
         for image_file in glob(join(base_path, "*.png")):
             name = splitext(image_file)
-            surface = pygame.image.load(join(base_path, image_file)).convert()
+            surface = pygame.image.load(image_file).convert()
             surface.set_colorkey((0, 128, 128))
             images[name[0]] = surface
         return images
@@ -99,6 +99,7 @@ class MapLoader(object):
                 new_map.items = self.create_items(object_group)
             elif object_group.name == "waypoints":
                 new_map.waypoints = self.create_waypoints(object_group)
+                self.create_neighbors(object_group, new_map.waypoints)
             elif object_group.name == "exits":
                 new_map.exits = self.create_exits(object_group)
 
@@ -115,10 +116,24 @@ class MapLoader(object):
         return itemui_list
 
     def create_waypoints(self, waypoints):
-        wp_list = []
+        wp_list = dict()
         for waypoint in waypoints:
-            wp_list.append((waypoint.x, waypoint.y))
+            wp = Waypoint(waypoint.name)
+            wp.pos = (waypoint.x, waypoint.y+waypoint.height)
+            wp_list[waypoint.name] = wp
+
         return wp_list
+
+    def create_neighbors(self, tmx_object_group, map_waypoints):
+        for waypoint in tmx_object_group:
+            wp = map_waypoints[waypoint.name]
+            for wp_property in waypoint.properties:
+                if wp_property == "spawn":
+                    wp.is_spawn = True
+                if wp_property == "connect":
+                    neighbors_array = self.find_neighbors(waypoint)
+                    for neighbor in neighbors_array:
+                        wp.neighbors[neighbor] = map_waypoints[neighbor]
 
     def create_exits(self, exits):
         exit_dict = dict()
@@ -133,5 +148,5 @@ class MapLoader(object):
         background_layer = tmx.get_layer_by_name("background")
         new_map.background = BackgroundUI(background_layer)
 
-
-
+    def find_neighbors(self, waypoint):
+        return waypoint.properties["connect"].split(", ")
