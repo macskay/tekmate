@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 from os.path import join, abspath, split
+
 import pygame
 import sys
 
@@ -10,10 +11,14 @@ class MessageSystem(pygame.sprite.Sprite):
         self.surface = None
         self.image = None
         self.rect = None
+        self.font = self.load_font("RosesareFF0000.ttf")
+
+    def load_font(self, font_name):
         pth = abspath(split(__file__)[0])
         sys.path.append(abspath(join(pth, u"..")))
-        self.font = pygame.font.Font(join(pth, "..", "assets", "global", "fonts", "RosesareFF0000.ttf"), 20)
+        return pygame.font.Font(join(pth, "..", "..", "assets", "global", "fonts", font_name), 20)
 
+    # noinspection PyArgumentList
     def set_sprite_properties(self, height, o2, width):
         self.surface = pygame.Surface((width + o2, height + o2), pygame.SRCALPHA)
         self.surface.set_colorkey((0, 0, 0))

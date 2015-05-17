@@ -1,11 +1,12 @@
 # -*- encoding: utf-8 -*-
 from functools import partial
-import math
-import pygame
-from taz.game import Scene, Game
-from tekmate.messages import MessageSystem
 
-from tekmate.ui import ContextMenuUI, PlayerUI
+import pygame
+
+from taz.game import Scene, Game
+
+from tekmate.draw.messages import MessageSystem
+from tekmate.draw.ui import ContextMenuUI, PlayerUI
 
 
 class WorldScene(Scene):
@@ -17,8 +18,6 @@ class WorldScene(Scene):
         self.player_ui = PlayerUI()
         self.message_system = MessageSystem()
 
-        self.waypoints = list()
-
         self.item_group = pygame.sprite.OrderedUpdates()
         self.default_group = pygame.sprite.OrderedUpdates()
         self.context_group = pygame.sprite.OrderedUpdates()
@@ -29,7 +28,10 @@ class WorldScene(Scene):
         self.current_observed_item = None
         self.current_selected_item = None
 
-    def initialize(self):  # pragma: no cover
+        self.best_path = list()
+        self.callback = None
+
+    def initialize(self):
         self.display = self.game.render_context["display"]
 
         self.change_map(self.game.update_context["maps"]["example"])
@@ -51,11 +53,9 @@ class WorldScene(Scene):
         elif self.is_left_mouse_pressed(event):
             self.process_left_mouse_button_pressed(event)
         elif self.is_i_pressed(event):
-            if not self.context_menu.alive():  # pragma: no cover (implicit else)
+            if not self.context_menu.alive():
                 self.handle_bag()
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_F1:  # pragma: no cover (just debugging)
-            print(self.current_selected_item.item.get_name() + " is currently selected.")
-        elif event.type == pygame.USEREVENT:  # pragma: no cover
+        elif event.type == pygame.USEREVENT:
             self.display_text_group.empty()
             pygame.time.set_timer(pygame.USEREVENT, 0)
 
@@ -65,7 +65,7 @@ class WorldScene(Scene):
     def is_right_mouse_pressed(self, event):
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 3
 
-    def process_right_mouse_pressed(self, pos):  # pragma: no cover
+    def process_right_mouse_pressed(self, pos):
         if len(self.animation_group) > 0:
             self.animation_group.empty()
         clicked_in_bag_but_not_on_item = self.select_correct_context_menu_list(pos)
@@ -74,20 +74,20 @@ class WorldScene(Scene):
         else:
             self.open_context_menu(pos)
 
-    def select_correct_context_menu_list(self, pos):  # pragma: no cover
+    def select_correct_context_menu_list(self, pos):
         self.set_context_menu(ContextMenuUI.CONTEXT_MENU_DEFAULT)
         if self.is_mouse_pos_inside_world_item(pos) and not self.is_bag_visible():
             self.set_world_item_context_menu()
         elif self.is_mouse_pos_inside_bag_item(pos):
             self.set_bag_item_world_context_menu()
         else:
-            if self.is_bag_visible():    # pragma: no cover
+            if self.is_bag_visible():
                 return True
         return False
 
     def is_mouse_pos_inside_world_item(self, pos):
         for item in self.item_group.sprites():
-            if item.rect.collidepoint(pos):  # pragma: no cover (implicit else, nothing happening here)
+            if item.rect.collidepoint(pos):
                 self.current_observed_item = item
                 return True
         return False
@@ -95,7 +95,7 @@ class WorldScene(Scene):
     def is_bag_visible(self):
         return self.player_ui.is_bag_visible()
 
-    def set_world_item_context_menu(self):  # pragma: no cover
+    def set_world_item_context_menu(self):
         if self.current_selected_item is not None:
             self.set_context_menu(ContextMenuUI.CONTEXT_COMBINE_ITEM)
         else:
@@ -106,12 +106,12 @@ class WorldScene(Scene):
 
     def is_mouse_pos_inside_bag_item(self, pos):
         for item in self.player_ui.bag_sprite_group.sprites()[1:]:
-            if item.rect.collidepoint(pos):  # pragma: no cover (implicit else, nothing happening here)
+            if item.rect.collidepoint(pos):
                 self.current_observed_item = item
                 return True
         return False
 
-    def set_bag_item_world_context_menu(self):  # pragma: no cover
+    def set_bag_item_world_context_menu(self):
         self.set_context_menu(ContextMenuUI.CONTEXT_MENU_BAG_ITEM)
 
     def open_context_menu(self, pos):
@@ -125,14 +125,14 @@ class WorldScene(Scene):
         if self.is_context_menu_visible():
             self.handle_opened_context_menu(event.pos)
         else:
-            if not self.is_bag_visible():  # pragma: no cover (implicit else)
+            if not self.is_bag_visible():
                 self.move_player(event.pos)
 
     def is_context_menu_visible(self):
         return self.context_menu.alive()
 
     def handle_opened_context_menu(self, mouse_pos):
-        if self.is_context_menu_clicked_on(mouse_pos):     # pragma: no cover
+        if self.is_context_menu_clicked_on(mouse_pos):
             self.process_button_command(mouse_pos)
         else:
             self.close_context_menu()
@@ -140,7 +140,7 @@ class WorldScene(Scene):
     def is_context_menu_clicked_on(self, pos):
         return self.context_menu.rect.collidepoint(pos)
 
-    def process_button_command(self, mouse_pos):   # pragma: no cover
+    def process_button_command(self, mouse_pos):
         actions = {
             "Walk": lambda: partial(self.move_player, mouse_pos),
             "Take": lambda: partial(self.walk_to_item_before_interacting, self.take_item),
@@ -158,50 +158,43 @@ class WorldScene(Scene):
         return self.context_menu.get_button_pressed(mouse_pos)
 
     def walk_to_item_before_interacting(self, callback):
-        print(abs(self.player_ui.rect.left - self.current_observed_item.rect.left))
         if abs(self.player_ui.rect.left - self.current_observed_item.rect.left) < 100:
             callback()
-        else:  # pragma: no cover
+        else:
             self.move_player(self.current_observed_item.rect.center, callback)
 
     def move_player(self, pos, callback=None):
-        closest_waypoint = self.find_closest_waypoint_to_destination(pos)
-        # self.print_closest_neighbors(closest_waypoint)
-        self.start_animation(callback, pos)
+        self.best_path = self.find_shortest_path_to_destination(pos)
+        self.callback = callback
+        self.move_to_next_waypoint()
 
-    def find_closest_waypoint_to_destination(self, pos):
-        closest_waypoint = None
-        smallest_distance = 3000
-        for waypoint in self.waypoints:
-            distance = self.calculate_euclidean_distance(pos, waypoint)
-            if distance < smallest_distance:
-                smallest_distance = distance
-                closest_waypoint = waypoint
-        return closest_waypoint
+    def move_to_next_waypoint(self):
+        if len(self.best_path) > 1:
+            self.trigger_next_animation()
+        elif len(self.best_path) == 1:
+            self.trigger_last_animation_and_execute_interaction()
 
-    def print_closest_neighbors(self, closest_waypoint):
-        print("Closed Waypoint: %s" % closest_waypoint.name)
-        print("Closed Waypoint's neighbors: %s\n" % closest_waypoint.neighbors)
-        for waypoint in self.waypoints:
-            if waypoint.pos == self.player_ui.rect.bottomleft:
-                print("My waypoint: %s" % waypoint.name)
-                print("My neighbors: %s\n" % waypoint.neighbors)
+    def trigger_next_animation(self):
+        pos = self.best_path[0].pos
+        self.best_path.pop(0)
+        self.start_animation(self.move_to_next_waypoint, pos)
+
+    def trigger_last_animation_and_execute_interaction(self):
+        pos = self.best_path[0].pos
+        self.best_path.pop(0)
+        self.start_animation(self.callback, pos)
+
+    def find_shortest_path_to_destination(self, pos):
+        return self.player_ui.find_shortest_path_to_destination(pos)
 
     def start_animation(self, callback, pos):
         ani = self.player_ui.move(pos)
-        if callback is not None:  # pragma: no cover
+        if callback is not None:
             ani.callback = lambda: callback()
         ani.start(self.player_ui.rect)
         self.animation_group.add(ani)
 
-    def calculate_euclidean_distance(self, pos, waypoint):
-        waypoint_center_x = waypoint.pos[0]+waypoint.width / 2
-        waypoint_center_y = waypoint.pos[1]-waypoint.height / 2
-        euclidean_distance = int(math.sqrt((pos[0]-waypoint_center_x)*(pos[0]-waypoint_center_x) +
-                                           (pos[1]-waypoint_center_y)*(pos[1]-waypoint_center_y)))
-        return euclidean_distance
-
-    def take_item(self):  # pragma: no cover
+    def take_item(self):
         self.player_ui.add_item(self.current_observed_item)
         item_name = self.get_name_of_item()
         self.show_display_text("Alright, I think I'll take that %s with me!" % item_name)
@@ -216,10 +209,10 @@ class WorldScene(Scene):
     def look_at_item(self):
         self.show_display_text(self.current_observed_item.look_at())
 
-    def use_item(self):  # pragma: no cover
+    def use_item(self):
         self.show_display_text(self.current_observed_item.use())
 
-    def inspect_item(self):     # pragma: no cover
+    def inspect_item(self):
         return self.current_observed_item.inspect()
 
     def get_name_of_item(self):
@@ -262,19 +255,10 @@ class WorldScene(Scene):
 
         pygame.display.flip()
 
-    def resume(self):  # pragma: no cover
-        print("Resuming World")
-
-    def pause(self):  # pragma: no cover
-        print("Pausing World")
-
-    def tear_down(self):  # pragma: no cover
-        print("Tearing-Down World")
-
     def change_map(self, map_to_load):
         self.background_group.add(map_to_load.background)
         self.load_items(map_to_load)
-        self.waypoints = map_to_load.waypoints
+        self.player_ui.waypoints = map_to_load.waypoints
         self.find_spawn_for_player()
 
     def load_items(self, map_to_load):
@@ -282,12 +266,13 @@ class WorldScene(Scene):
             self.item_group.add(item)
 
     def find_spawn_for_player(self):
-        for waypoint in self.waypoints:
-            if waypoint.is_spawn:
-                self.set_player_start(waypoint)
+        self.player_ui.find_spawn()
 
-    def set_player_start(self, waypoint):
-        self.player_ui.rect.bottomleft = waypoint.pos
+    def resume(self):
+        print("Resuming World")
 
+    def pause(self):
+        print("Pausing World")
 
-
+    def tear_down(self):
+        print("Tearing-Down World")

@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
 
-from mock import patch, Mock
+from mock import patch
 import pygame
 
 from tekmate.configuration import PyGameInitializer, TekmateFactory, MapLoader
-from tekmate.scenes import WorldScene
+from tekmate.draw.scenes import WorldScene
 
 
 class PyGameInitializerTestCase(TestCase):

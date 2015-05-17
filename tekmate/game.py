@@ -35,13 +35,13 @@ class Map(object):
         self.name = name
         self.items = list()
         self.exits = dict()
-        self.waypoints = list()
+        self.waypoints = dict()
         self.background = None
 
 
 class Waypoint(object):
     def __init__(self, name):
-        self.neighbors = list()
+        self.neighbors = dict()
         self.name = name
         self.pos = None
         self.is_spawn = False
