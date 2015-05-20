@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
 from unittest import TestCase
 from mock import patch
+from tekmate.draw.ui import LetterUnderDoorUI
 
 from tekmate.game import Player
 from tekmate.items import Item, Key, IdCard, Door, CardReader, Note, SymbolsFolder, TelephoneNote, \
-    Telephone, Paperclip, Letter
+    Telephone, Paperclip, Letter, LetterUnderDoor
 
 
 class ItemTestCase(TestCase):
@@ -83,6 +84,17 @@ class ItemTestCase(TestCase):
         self.assertTrue(self.item.usable)
         self.assertTrue(self.item.obtainable)
 
+    def test_when_getting_obtainable_message_of_non_obtainable_item_get_not_obtainable_message(self):
+        any_item = Item([])
+        self.assertEqual(any_item.add_not_obtainable_message, any_item.get_add_message())
+
+    def test_when_getting_obtainable_message_of_obtainable_item_get_add_message(self):
+        any_item = Item([])
+        any_item.obtainable = True
+        self.assertEqual(any_item.add_message, any_item.get_add_message())
+
+
+
 
 class PaperclipTestCase(TestCase):
     def setUp(self):
@@ -98,28 +110,41 @@ class PaperclipTestCase(TestCase):
 
     def test_when_combined_with_other_than_door_retrn_false(self):
         obj = Item([])
-        self.assertFalse(self.paperclip.is_combination_possible(obj))
+        comb = self.paperclip.is_combination_possible(obj)
+        self.assertFalse(comb[0])
 
     def test_gets_consumed_when_combined_correctly_with_door(self):
+        self.door.parent_container.append(LetterUnderDoorUI())
         self.paperclip.combine(self.door)
         self.assertNotIn(self.paperclip, self.container)
 
     def test_when_combined_correctly_key_is_obtainable(self):
         self.door.looked_at = True
+        lud = LetterUnderDoorUI()
+        self.door.parent_container.append(lud)
         self.paperclip.combine(self.door)
-        self.assertTrue(self.key.obtainable)
+        self.assertTrue(lud.item.obtainable)
 
     def test_when_combining_possible_return_true(self):
         self.door.looked_at = True
         self.assertTrue(self.paperclip.is_combination_possible(self.door))
 
+    def test_when_not_looked_at_door_first_return_false(self):
+        self.door.looked_at = False
+        comb = self.paperclip.is_combination_possible(self.door)
+        self.assertFalse(comb[0])
+
     def test_when_combining_with_door_and_doors_combined_with_letter_is_false_return_false(self):
         self.door.unique_attributes["combined_with_letter"] = False
-        self.assertFalse(self.paperclip.is_combination_possible(self.door))
+        self.door.looked_at = True
+        comb = self.paperclip.is_combination_possible(self.door)
+        self.assertFalse(comb[0])
 
     def test_when_combined_with_door_correctly_set_combined_with_paperclip_True(self):
+        self.door.parent_container.append(LetterUnderDoorUI())
         self.paperclip.combine(self.door)
         self.assertTrue(self.door.unique_attributes["combined_with_paperclip"])
+
 
 
 class IdCardTestCase(TestCase):
@@ -139,7 +164,8 @@ class IdCardTestCase(TestCase):
         self.assertTrue(self.door.usable)
 
     def test_when_combined_with_door_and_insufficient_permissions_return_false(self):
-        self.assertFalse(self.idcard.is_combination_possible(self.door))
+        comb = self.idcard.is_combination_possible(self.door)
+        self.assertFalse(comb[0])
 
     def test_when_sufficient_permissions_return_true(self):
         self.idcard.unique_attributes["key_code"] = 1
@@ -171,7 +197,8 @@ class CardReaderTestCase(TestCase):
 
     def test_when_combined_with_other_than_a_card_return_false(self):
         any_item = Item([])
-        self.assertFalse(self.reader.is_combination_possible(any_item))
+        comb = self.reader.is_combination_possible(any_item)
+        self.assertFalse(comb[0])
 
     def test_when_combination_is_possible_return_true(self):
         self.assertTrue(self.reader.is_combination_possible(self.idcard))
@@ -188,7 +215,8 @@ class NoteTestCase(TestCase):
 
     def test_when_combined_with_other_than_the_symbol_folder_return_false(self):
         any_item = Item([])
-        self.assertFalse(self.note.is_combination_possible(any_item))
+        comb = self.note.is_combination_possible(any_item)
+        self.assertFalse(comb[0])
 
     def test_when_combined_with_symbol_folder_remove_note_from_player_bag(self):
         self.note.combine(self.folder)
@@ -216,7 +244,8 @@ class TelephoneTestCase(TestCase):
 
     def test_when_combined_with_other_than_telephone_note_return_false(self):
         any_item = Item([])
-        self.assertFalse(self.telephone.is_combination_possible(any_item))
+        comb = self.telephone.is_combination_possible(any_item)
+        self.assertFalse(comb[0])
 
     def test_when_combination_possible_return_true(self):
         self.assertTrue(self.telephone.is_combination_possible(self.tel_note))
@@ -239,19 +268,23 @@ class LetterTestCase(TestCase):
 
     def test_when_letter_combined_other_than_door_return_false(self):
         any_item = Item([])
-        self.assertFalse(self.letter.is_combination_possible(any_item))
+        comb = self.letter.is_combination_possible(any_item)
+        self.assertFalse(comb[0])
 
     def test_gets_consumed_when_combined_correctly_with_door(self):
         self.door.looked_at = True
+        self.door.parent_container.append(LetterUnderDoorUI())
         self.letter.combine(self.door)
         self.assertNotIn(self.letter, self.container)
 
     def test_when_letter_combined_with_door_and_door_looked_at_is_false_return_false(self):
-        self.assertFalse(self.letter.is_combination_possible(self.door))
+        comb = self.letter.is_combination_possible(self.door)
+        self.assertFalse(comb[0])
 
     def test_doors_combined_with_letter_return_true(self):
         self.assertFalse(self.door.unique_attributes["combined_with_letter"])
         self.door.looked_at = True
+        self.door.parent_container.append(LetterUnderDoorUI())
         self.letter.combine(self.door)
         self.assertTrue(self.door.unique_attributes["combined_with_letter"])
 
@@ -271,7 +304,8 @@ class KeyTestCase(TestCase):
 
     def test_when_key_combined_other_than_door_raise_exception(self):
         any_item = Item([])
-        self.assertFalse(self.key.is_combination_possible(any_item))
+        comb = self.key.is_combination_possible(any_item)
+        self.assertFalse(comb[0])
 
     def test_when_key_combined_with_door_and_door_not_usable_make_it_usable(self):
         self.key.combine(self.door)

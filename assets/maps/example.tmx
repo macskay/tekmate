@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="32" height="18" tilewidth="32" tileheight="32" nextobjectid="19">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="32" height="18" tilewidth="32" tileheight="32" nextobjectid="20">
  <imagelayer name="background">
   <image source="../images/title-background.png"/>
  </imagelayer>
  <objectgroup name="items">
-  <object id="1" name="letter" type="item" x="864" y="352" width="32" height="64"/>
-  <object id="18" name="door" type="item" x="64" y="384" width="64" height="96"/>
+  <object id="1" name="letter" type="item" x="872" y="360" width="32" height="64"/>
+  <object id="18" name="door" type="item" x="64" y="320" width="48" height="160"/>
+  <object id="19" name="letter_under_door" type="item" x="88" y="472" width="96" height="64"/>
  </objectgroup>
  <objectgroup name="waypoints">
   <object id="6" name="waypoint_door" type="waypoint" x="128" y="448" width="32" height="32">

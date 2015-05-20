@@ -16,9 +16,10 @@ class Player(object):
 
     def add_item(self, item):
         if not item.obtainable:
-            raise Item.NotObtainable
+            return False
         item.parent_container = self.bag
         self.bag.append(item)
+        return True
 
     def trigger_item_combination(self, item1, item2):
         item1.combine(item2)
@@ -37,6 +38,10 @@ class Map(object):
         self.exits = dict()
         self.waypoints = dict()
         self.background = None
+
+    def set_items_parent_container(self):
+        for item_ui in self.items:
+            item_ui.parent_container = self.items
 
 
 class Waypoint(object):
