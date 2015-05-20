@@ -33,6 +33,8 @@ class Item(object):
     class InvalidInput(Exception):
         pass
 
+    WRONG_COMBINATION = "I can't do that!"
+
     def __init__(self, parent_container):
         assert parent_container is not None
         parent_container.append(self)
@@ -45,7 +47,11 @@ class Item(object):
         self.inspect_message = "INSPECT"
         self.use_message = "USE"
         self.use_not_usable_message = "NOT_USABLE"
+        self.add_message = "ADD"
+        self.add_not_obtainable_message = "NOT OBTAINABLE"
         self.unique_attributes = {}
+        self.is_split_needed = False
+        self.visible = True
         self.setup()
         self.fill_attributes()
 
@@ -60,7 +66,10 @@ class Item(object):
             "usable": lambda: partial(self.set_usable, value),
             "use": lambda: partial(self.set_use_message, value),
             "use_not_usable": lambda: partial(self.set_use_not_usable_message, value),
-            "inspect": lambda: partial(self.set_inspect, value)
+            "inspect": lambda: partial(self.set_inspect, value),
+            "split_needed": lambda: partial(self.set_split_needed, value),
+            "add": lambda: partial(self.set_add_message, value),
+            "add_not_obtainable": lambda: partial(self.set_add_not_obtainable_message, value)
         }
         attributes = load_item_data(self.name)
         if attributes is not None:
@@ -85,6 +94,15 @@ class Item(object):
 
     def set_use_not_usable_message(self, value):
         self.use_not_usable_message = value
+
+    def set_split_needed(self, value):
+        self.is_split_needed = value
+
+    def set_add_message(self, value):
+        self.add_message = value
+
+    def set_add_not_obtainable_message(self, value):
+        self.add_not_obtainable_message = value
 
     def combine(self, other):  # pragma: no cover
         pass
@@ -112,6 +130,11 @@ class Item(object):
     def get_inspect_message(self):
         return self.inspect_message
 
+    def get_add_message(self):
+        if not self.obtainable:
+            return self.add_not_obtainable_message
+        return self.add_message
+
     def is_combination_possible(self, other):  # pragma: no cover
         pass
 
@@ -126,6 +149,13 @@ class Item(object):
             if key == new_look_at_key:
                 other.look_at_message = value
 
+    def get_combination_message(self, other, combination_error):
+        attributes = load_item_data(other.get_name())
+        for key, value in attributes.items():
+            if key == combination_error:  # pragma: no cover (nothing happens when the key is not found)
+                return value
+
+
 
 class Paperclip(Item):
     def setup(self):
@@ -133,30 +163,37 @@ class Paperclip(Item):
 
     def is_combination_possible(self, other):
         if self.is_wrong_combination(other, "Door"):
-            return False
+            return False, Item.WRONG_COMBINATION
+        if not other.looked_at:
+            return False, self.get_combination_message(other, "combination_paperclip_not_looked_at")
         if not other.unique_attributes["combined_with_letter"]:
-            return False
-        return True
+            return False, self.get_combination_message(other, "combination_letter_not_under_door")
+        return True, self.get_combination_message(self, "combinate")
 
     def combine(self, other):
         self.remove_from_parent_container()
-        key_item = next((item for item in other.parent_container if item.get_name() == "Key"))
-        key_item.obtainable = True
-        other.unique_attributes["combined_with_paperclip"] = True
+        letter_under_door = next((item_ui for item_ui in other.parent_container if item_ui.get_name() == "LetterUnderDoor"))
+        letter_under_door.item.obtainable = True
 
+        other.unique_attributes["combined_with_paperclip"] = True
+        self.change_look_at_message(other, "look_at_when_key_obtainable")
 
 class Key(Item):
     def setup(self):
         self.name = "Key"
+        self.visible = False
 
     def is_combination_possible(self, other):
         if self.is_wrong_combination(other, "Door"):
-            return False
-        return True
+            return False, Item.WRONG_COMBINATION
+        return True, self.get_combination_message(self, "combinate")
 
     def combine(self, other):
         other.usable = True
         self.remove_from_parent_container()
+
+        self.change_look_at_message(other, "look_at_door_unlocked")
+
 
 
 class IdCard(Item):
@@ -170,8 +207,8 @@ class IdCard(Item):
 
     def is_combination_possible(self, other):
         if self.has_insufficient_permissions(other):
-            return False
-        return True
+            return False, Item.WRONG_COMBINATION
+        return True, None
 
     def combine(self, other):
         other.usable = True
@@ -193,8 +230,8 @@ class CardReader(Item):
 
     def is_combination_possible(self, other):
         if self.is_wrong_combination(other, "ID-Card"):
-            return False
-        return True
+            return False, Item.WRONG_COMBINATION
+        return True, None
 
     def combine(self, other):
         other.unique_attributes["key_code"] += 1
@@ -207,8 +244,8 @@ class Note(Item):
 
     def is_combination_possible(self, other):
         if self.is_wrong_combination(other, "Symbols-Folder"):
-            return False
-        return True
+            return False, Item.WRONG_COMBINATION
+        return True, None
 
     def combine(self, other):
         self.add_telephone_note_to_player_bag()
@@ -231,8 +268,8 @@ class Telephone(Item):
 
     def is_combination_possible(self, other):
         if self.is_wrong_combination(other, "Telephone-Note"):
-            return False
-        return True
+            return False, Item.WRONG_COMBINATION
+        return True, None
 
     def combine(self, other):
         other.remove_from_parent_container()
@@ -240,21 +277,29 @@ class Telephone(Item):
 
 class Letter(Item):
     def setup(self):
-        self.obtainable = True
         self.name = "Letter"
 
     def is_combination_possible(self, other):
         if self.is_wrong_combination(other, "Door"):
-            return False
+            return False, Item.WRONG_COMBINATION
         if not other.looked_at:
-            return False
-        return True
+            return False, self.get_combination_message(other, "combination_letter_not_looked_at")
+        return True, self.get_combination_message(self, "combinate")
 
     def combine(self, other):
         self.remove_from_parent_container()
         other.unique_attributes["combined_with_letter"] = True
+        letter_under_door = next((item_ui for item_ui in other.parent_container
+                                  if item_ui.get_name() == "LetterUnderDoor"))
+
+        letter_under_door.item.visible = True
         self.change_look_at_message(other, "look_at_after_letter")
 
+
+class LetterUnderDoor(Item):
+    def setup(self):
+        self.visible = False
+        self.name = "LetterUnderDoor"
 
 class SymbolsFolder(Item):
     def setup(self):

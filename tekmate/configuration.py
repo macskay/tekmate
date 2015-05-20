@@ -9,7 +9,7 @@ from taz.game import Game
 
 from tekmate.game import Map, Waypoint
 from tekmate.draw.scenes import WorldScene
-from tekmate.draw.ui import DoorUI, LetterUI, BackgroundUI
+from tekmate.draw.ui import DoorUI, LetterUI, BackgroundUI, KeyUI, LetterUnderDoorUI
 
 
 class PyGameInitializer(object):
@@ -97,6 +97,7 @@ class MapLoader(object):
         for object_group in tmx.objectgroups:
             if object_group.name == "items":
                 new_map.items = self.create_items(object_group)
+                new_map.set_items_parent_container()
             elif object_group.name == "waypoints":
                 new_map.waypoints = self.create_waypoints(object_group)
                 self.create_neighbors(object_group, new_map.waypoints)
@@ -104,16 +105,18 @@ class MapLoader(object):
                 new_map.exits = self.create_exits(object_group)
 
     def create_items(self, items):  # pragma: no cover
-        itemui_list = []
+        items_list = []
         for item in items:
             item_ui = None
             if item.name == "door":
                 item_ui = DoorUI()
             elif item.name == "letter":
                 item_ui = LetterUI()
+            elif item.name == "letter_under_door":
+                item_ui = LetterUnderDoorUI()
+            items_list.append(item_ui)
             item_ui.rect.move_ip((item.x, item.y))
-            itemui_list.append(item_ui)
-        return itemui_list
+        return items_list
 
     def create_waypoints(self, waypoints):
         wp_list = dict()

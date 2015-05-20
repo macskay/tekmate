@@ -33,10 +33,6 @@ class PlayerTestCase(TestCase):
     def test_player_position_defaults_at_zero_450(self):
         self.assertEqual(self.player.position, (0, 400))
 
-    def test_when_when_picking_up_not_obtainable_item_raise_exception_and_size_of_bag_should_be_one(self):
-        self.assertRaises(Item.NotObtainable, self.player.add_item, self.not_obtainable_item)
-        self.assertEqual(len(self.player.bag), 0)
-
     def test_when_picking_up_obtainable_item_size_of_bag_should_be_one(self):
         self.player.add_item(self.obtainable_item)
         self.assertEqual(len(self.player.bag), 1)
@@ -58,6 +54,10 @@ class PlayerTestCase(TestCase):
         self.player.trigger_item_combination(mock_item1, mock_item2)
         mock_item1.combine.assert_called_with(mock_item2)
         mock_item2.combine.assert_called_with(mock_item1)
+
+    def test_when_added_non_obtainable_item_return_false(self):
+        any_item = Item([])
+        self.assertFalse(self.player.add_item(any_item))
 
 
 class MapTestCase(TestCase):

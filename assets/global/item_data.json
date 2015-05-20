@@ -4,7 +4,16 @@
       "usable": "True",
       "look_at": "This is a Letter.",
       "inspect": "This Letter is from Hammond. I should go to him.",
-      "use": "Dummy use Letter"
+      "use": "Dummy use Letter",
+      "split_needed": "True",
+      "add": "I should take this letter with me.\nOh there is a paperclip, I'm taking that too!",
+      "combinate": "Alright, let's see.."
+    },
+    "LetterUnderDoor": {
+      "look_at": "I can just see the rest of the letter.",
+      "add_not_obtainable": "No! I just put it there, why should I pick it up again?",
+      "add": "YES! It worked, I got the key!",
+      "split_needed": "True"
     },
     "Note":{
       "obtainable": "True",
@@ -16,15 +25,22 @@
     "Paperclip":{
       "obtainable": "True",
       "look_at": "This is a Paperclip.",
-      "inspect": "This is the same Paperclip as before. There are several ways to use them."
+      "inspect": "This is the the Paperclip that came with the letter. There are several ways to use them.",
+      "combinate": "*KLONK* Looks, like the key fell down! Let's see.."
     },
     "Key":{
-      "inspect": "This is the Key for my room."
+      "inspect": "This is the Key for my room.",
+      "combinate": "Finally, now I can get out of here!"
     },
     "Door":{
       "look_at": "It seems that the key is still in the lock on the other side.",
       "look_at_after_letter": "I pushed the letter under the door gap. Now what?",
+      "look_at_when_key_obtainable": "I think the key is on top of the letter. At least I hope so!",
+      "look_at_door_unlocked": "*click* YES! It worked! The door is now unlocked.",
       "use": "This door is now open.",
-      "use_not_usable": "This door is locked."
+      "use_not_usable": "This door is locked.",
+      "combination_letter_not_looked_at": "Why should I use the letter with this door?",
+      "combination_paperclip_not_looked_at": "How should that help, I can't pick locks?",
+      "combination_letter_not_under_door": "When I do that now I will never be able to reach the key!"
     }
 }
