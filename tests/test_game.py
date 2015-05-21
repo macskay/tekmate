@@ -11,7 +11,9 @@ from tekmate.items import Item
 
 
 class PlayerTestCase(TestCase):
-    def setUp(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def setUp(self, mock_fill):
+        mock_fill.return_value = None
         self.player = Player()
 
         self.create_obtainable_item()
@@ -55,7 +57,9 @@ class PlayerTestCase(TestCase):
         mock_item1.combine.assert_called_with(mock_item2)
         mock_item2.combine.assert_called_with(mock_item1)
 
-    def test_when_added_non_obtainable_item_return_false(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_added_non_obtainable_item_return_false(self, mock_fill):
+        mock_fill.return_value = None
         any_item = Item([])
         self.assertFalse(self.player.add_item(any_item))
 

@@ -15,10 +15,12 @@ class Player(object):
         self.bag = []
 
     def add_item(self, item):
-        if not item.obtainable:
-            return False
+        return False if not item.obtainable else self.add_item_to_bag(item)
+
+    def add_item_to_bag(self, item):
         item.parent_container = self.bag
         self.bag.append(item)
+
         return True
 
     def trigger_item_combination(self, item1, item2):
@@ -26,9 +28,7 @@ class Player(object):
         item2.combine(item1)
 
     def look_at(self, item1):
-        if item1 in self.bag:
-            return item1.get_inspect_message()
-        return item1.get_look_at_message()
+        return item1.get_look_at_message() if item1 not in self.bag else item1.get_inspect_message()
 
 
 class Map(object):

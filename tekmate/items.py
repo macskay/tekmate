@@ -12,27 +12,10 @@ def load_item_data(name):
     items_path = os.path.join(pth, "..", "assets", "global", "item_data.json")
     with open(items_path) as item_file:
         items_data = load(item_file)
-    for item in items_data:
-        if item == name:
-            return items_data[item]
+    return next(items_data[item] for item in items_data if item == name)
 
 
 class Item(object):
-    class NotUsable(Exception):
-        pass
-
-    class NotObtainable(Exception):
-        pass
-
-    class InvalidCombination(Exception):
-        pass
-
-    class ConditionNotMet(Exception):
-        pass
-
-    class InvalidInput(Exception):
-        pass
-
     WRONG_COMBINATION = "I can't do that!"
 
     def __init__(self, parent_container):
@@ -72,10 +55,9 @@ class Item(object):
             "add_not_obtainable": lambda: partial(self.set_add_not_obtainable_message, value)
         }
         attributes = load_item_data(self.name)
-        if attributes is not None:
-            for key, value in attributes.items():
-                if key in actions.keys():
-                    actions[key]()()
+        for key, value in attributes.items():
+            if key in actions.keys():
+                actions[key]()()
 
     def set_obtainable(self, value):
         self.obtainable = value
@@ -123,38 +105,27 @@ class Item(object):
         return self.look_at_message
 
     def get_use_message(self):
-        if not self.usable:
-            return self.use_not_usable_message
-        return self.use_message
+        return self.use_not_usable_message if not self.usable else self.use_message
 
     def get_inspect_message(self):
         return self.inspect_message
 
     def get_add_message(self):
-        if not self.obtainable:
-            return self.add_not_obtainable_message
-        return self.add_message
+        return self.add_not_obtainable_message if not self.obtainable else self.add_message
 
     def is_combination_possible(self, other):  # pragma: no cover
         pass
 
     def is_wrong_combination(self, other, name):
-        if other.get_name() != name:
-            return True
-        return False
+        return True if other.get_name() != name else False
 
     def change_look_at_message(self, other, new_look_at_key):
         attributes = load_item_data(other.get_name())
-        for key, value in attributes.items():
-            if key == new_look_at_key:
-                other.look_at_message = value
+        other.look_at_message = next(value for key, value in attributes.items() if key == new_look_at_key)
 
     def get_combination_message(self, other, combination_error):
         attributes = load_item_data(other.get_name())
-        for key, value in attributes.items():
-            if key == combination_error:  # pragma: no cover (nothing happens when the key is not found)
-                return value
-
+        return next(value for key, value in attributes.items() if key == combination_error)
 
 
 class Paperclip(Item):
@@ -178,6 +149,7 @@ class Paperclip(Item):
         other.unique_attributes["combined_with_paperclip"] = True
         self.change_look_at_message(other, "look_at_when_key_obtainable")
 
+
 class Key(Item):
     def setup(self):
         self.name = "Key"
@@ -193,7 +165,6 @@ class Key(Item):
         self.remove_from_parent_container()
 
         self.change_look_at_message(other, "look_at_door_unlocked")
-
 
 
 class IdCard(Item):
@@ -291,7 +262,6 @@ class Letter(Item):
         other.unique_attributes["combined_with_letter"] = True
         letter_under_door = next((item_ui for item_ui in other.parent_container
                                   if item_ui.get_name() == "LetterUnderDoor"))
-
         letter_under_door.item.visible = True
         self.change_look_at_message(other, "look_at_after_letter")
 

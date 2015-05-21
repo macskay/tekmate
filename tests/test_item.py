@@ -9,7 +9,9 @@ from tekmate.items import Item, Key, IdCard, Door, CardReader, Note, SymbolsFold
 
 
 class ItemTestCase(TestCase):
-    def setUp(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def setUp(self, mock_fill):
+        mock_fill.return_value = None
         self.container = []
         self.item = Item(self.container)
 
@@ -49,6 +51,10 @@ class ItemTestCase(TestCase):
             def combine(self, other):
                 self.called = other is item
 
+            def fill_attributes(self):
+                pass
+
+
         mock_item = MockItem([])
         mock_item.combine(self.item)
         self.assertTrue(mock_item.called)
@@ -84,11 +90,15 @@ class ItemTestCase(TestCase):
         self.assertTrue(self.item.usable)
         self.assertTrue(self.item.obtainable)
 
-    def test_when_getting_obtainable_message_of_non_obtainable_item_get_not_obtainable_message(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_getting_obtainable_message_of_non_obtainable_item_get_not_obtainable_message(self, mock_fill):
+        mock_fill.return_value = None
         any_item = Item([])
         self.assertEqual(any_item.add_not_obtainable_message, any_item.get_add_message())
 
-    def test_when_getting_obtainable_message_of_obtainable_item_get_add_message(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_getting_obtainable_message_of_obtainable_item_get_add_message(self, mock_fill):
+        mock_fill.return_value = None
         any_item = Item([])
         any_item.obtainable = True
         self.assertEqual(any_item.add_message, any_item.get_add_message())
@@ -108,7 +118,9 @@ class PaperclipTestCase(TestCase):
     def test_can_create_paperclip(self):
         self.assertEqual("Paperclip", self.paperclip.get_name())
 
-    def test_when_combined_with_other_than_door_retrn_false(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_combined_with_other_than_door_retrn_false(self, mock_fill):
+        mock_fill.return_value = None
         obj = Item([])
         comb = self.paperclip.is_combination_possible(obj)
         self.assertFalse(comb[0])
@@ -148,7 +160,9 @@ class PaperclipTestCase(TestCase):
 
 
 class IdCardTestCase(TestCase):
-    def setUp(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def setUp(self, mock_fill):
+        mock_fill.return_value = None
         self.idcard = IdCard([])
         self.door = Door([])
         self.door.unique_attributes["access_code"] = 1
@@ -184,7 +198,9 @@ class DoorTestCase(TestCase):
 
 
 class CardReaderTestCase(TestCase):
-    def setUp(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def setUp(self, mock_fill):
+        mock_fill.return_value = None
         self.reader = CardReader([])
         self.idcard = IdCard([])
 
@@ -195,7 +211,9 @@ class CardReaderTestCase(TestCase):
         self.reader.combine(self.idcard)
         self.assertEqual(self.idcard.unique_attributes["key_code"], 1)
 
-    def test_when_combined_with_other_than_a_card_return_false(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_combined_with_other_than_a_card_return_false(self, mock_fill):
+        mock_fill.return_value = None
         any_item = Item([])
         comb = self.reader.is_combination_possible(any_item)
         self.assertFalse(comb[0])
@@ -205,7 +223,9 @@ class CardReaderTestCase(TestCase):
 
 
 class NoteTestCase(TestCase):
-    def setUp(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def setUp(self, mock_fill):
+        mock_fill.return_value = None
         self.folder = SymbolsFolder([])
         self.player = Player()
         self.note = Note(self.player.bag)
@@ -213,25 +233,33 @@ class NoteTestCase(TestCase):
     def test_can_create_note(self):
         self.assertEqual("Note", self.note.get_name())
 
-    def test_when_combined_with_other_than_the_symbol_folder_return_false(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_combined_with_other_than_the_symbol_folder_return_false(self, mock_fill):
+        mock_fill.return_value = None
         any_item = Item([])
         comb = self.note.is_combination_possible(any_item)
         self.assertFalse(comb[0])
 
-    def test_when_combined_with_symbol_folder_remove_note_from_player_bag(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_combined_with_symbol_folder_remove_note_from_player_bag(self, mock_fill):
+        mock_fill.return_value = None
         self.note.combine(self.folder)
         self.assertNotIn(self.note, self.player.bag)
 
     def test_when_combination_is_possible_return_true(self):
         self.assertTrue(self.note.is_combination_possible(self.folder))
 
-    def test_when_combined_with_symbol_folder_note_telephone_should_be_added_to_player_bag(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_combined_with_symbol_folder_note_telephone_should_be_added_to_player_bag(self, mock_fill):
+        mock_fill.return_value = None
         self.note.combine(self.folder)
         self.assertEqual(self.player.bag[0].get_name(), "Telephone-Note")
 
 
 class TelephoneTestCase(TestCase):
-    def setUp(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def setUp(self, mock_fill):
+        mock_fill.return_value = None
         self.telephone = Telephone([])
         self.setup_player_bag()
 
@@ -242,7 +270,9 @@ class TelephoneTestCase(TestCase):
     def test_can_create_telephone(self):
         self.assertEqual(self.telephone.get_name(), "Telephone")
 
-    def test_when_combined_with_other_than_telephone_note_return_false(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_combined_with_other_than_telephone_note_return_false(self, mock_fill):
+        mock_fill.return_value = None
         any_item = Item([])
         comb = self.telephone.is_combination_possible(any_item)
         self.assertFalse(comb[0])
@@ -266,7 +296,9 @@ class LetterTestCase(TestCase):
     def test_can_create_letter(self):
         self.assertEqual(self.letter.get_name(), "Letter")
 
-    def test_when_letter_combined_other_than_door_return_false(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_letter_combined_other_than_door_return_false(self, mock_fill):
+        mock_fill.return_value = None
         any_item = Item([])
         comb = self.letter.is_combination_possible(any_item)
         self.assertFalse(comb[0])
@@ -302,7 +334,9 @@ class KeyTestCase(TestCase):
     def test_can_create_key(self):
         self.assertIsInstance(self.key, Key)
 
-    def test_when_key_combined_other_than_door_raise_exception(self):
+    @patch("tekmate.items.Item.fill_attributes")
+    def test_when_key_combined_other_than_door_raise_exception(self, mock_fill):
+        mock_fill.return_value = None
         any_item = Item([])
         comb = self.key.is_combination_possible(any_item)
         self.assertFalse(comb[0])

@@ -18,7 +18,6 @@ class MessageSystem(pygame.sprite.Sprite):
         sys.path.append(abspath(join(pth, u"..")))
         return pygame.font.Font(join(pth, "..", "..", "assets", "global", "fonts", font_name), 20)
 
-    # noinspection PyArgumentList
     def set_sprite_properties(self, height, o2, width):
         self.surface = pygame.Surface((width + o2, height + o2), pygame.SRCALPHA)
         self.surface.set_colorkey((0, 0, 0))
