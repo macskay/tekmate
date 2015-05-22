@@ -2,4 +2,7 @@ pep8:
   full: true
 ignore-paths:
   - bin
+pylint:
+  disable:
+    - expression-not-assigned
 max-line-length: 120

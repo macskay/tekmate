@@ -143,7 +143,8 @@ class Paperclip(Item):
 
     def combine(self, other):
         self.remove_from_parent_container()
-        letter_under_door = next((item_ui for item_ui in other.parent_container if item_ui.get_name() == "LetterUnderDoor"))
+        letter_under_door = next((item_ui for item_ui in other.parent_container
+                                  if item_ui.get_name() == "LetterUnderDoor"))
         letter_under_door.item.obtainable = True
 
         other.unique_attributes["combined_with_paperclip"] = True
@@ -270,6 +271,7 @@ class LetterUnderDoor(Item):
     def setup(self):
         self.visible = False
         self.name = "LetterUnderDoor"
+
 
 class SymbolsFolder(Item):
     def setup(self):

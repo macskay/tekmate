@@ -3,6 +3,7 @@
 from tekmate.configuration import PyGameInitializer, TekmateFactory
 import logging
 
+
 def main():
     logging.basicConfig(level=logging.DEBUG)
     initializer = PyGameInitializer({"display_width": 1024, "display_height": 576})

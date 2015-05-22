@@ -9,7 +9,7 @@ from taz.game import Game
 
 from tekmate.game import Map, Waypoint
 from tekmate.draw.scenes import WorldScene
-from tekmate.draw.ui import DoorUI, LetterUI, BackgroundUI, KeyUI, LetterUnderDoorUI
+from tekmate.draw.ui import DoorUI, LetterUI, BackgroundUI, LetterUnderDoorUI
 
 
 class PyGameInitializer(object):
