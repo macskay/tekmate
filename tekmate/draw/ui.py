@@ -121,7 +121,8 @@ class PlayerUI(pygame.sprite.Sprite):
         if self.player.add_item(item_ui.item):
             self.trigger_item_pick_up_animation(item_ui)
             self.hide_item_from_world_when_in_bag(item_ui)
-            self.add_splitted_items_to_bag(item_ui) if self.item_has_to_be_split(item_ui) else self.add_item_to_ui_bag(item_ui)
+            self.add_splitted_items_to_bag(item_ui) if self.item_has_to_be_split(item_ui) \
+                else self.add_item_to_ui_bag(item_ui)
             map_items.remove(item_ui)
         return item_ui.item.get_add_message()
 
@@ -406,10 +407,12 @@ class PaperclipUI(ItemUI):
         self.item = Paperclip([])
         self.is_animation_triggered = True
 
+
 class KeyUI(ItemUI):
     def setup(self):
         self.load_image("key")
         self.item = Key([])
+
 
 class LetterUnderDoorUI(ItemUI):
     def setup(self):
@@ -418,6 +421,7 @@ class LetterUnderDoorUI(ItemUI):
 
     def split(self):
         return [KeyUI()]
+
 
 class BackgroundUI(pygame.sprite.Sprite):
     def __init__(self, background):

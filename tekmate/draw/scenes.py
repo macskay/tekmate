@@ -122,7 +122,8 @@ class WorldScene(Scene):
         return self.context_menu.alive()
 
     def handle_opened_context_menu(self, mouse_pos):
-        self.process_button_command(mouse_pos) if self.is_context_menu_clicked_on(mouse_pos) else self.close_context_menu()
+        self.process_button_command(mouse_pos) if self.is_context_menu_clicked_on(mouse_pos) \
+            else self.close_context_menu()
 
     def is_context_menu_clicked_on(self, pos):
         return self.context_menu.rect.collidepoint(pos)
@@ -367,7 +368,7 @@ class WorldScene(Scene):
 
     def handle_logging_events(self, event):
         if event.type == self.FPS_EVENT:
-            logger.debug("FPS: %s" % self.game.update_context["clock"].get_fps())
+            logger.debug("FPS: " + self.game.update_context["clock"].get_fps())
 
     def resume(self):
         print("Resuming World")
