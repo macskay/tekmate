@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+
 class Player(object):
     SURFACE_WIDTH = 40
     SURFACE_HEIGHT = 100
