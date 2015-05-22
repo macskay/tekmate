@@ -1,6 +1,4 @@
 # -*- encoding: utf-8 -*-
-from tekmate.items import Item
-
 
 class Player(object):
     SURFACE_WIDTH = 40

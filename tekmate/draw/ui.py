@@ -190,18 +190,18 @@ class PlayerUI(pygame.sprite.Sprite):
 
     def get_start_node(self):
         start_node = None
-        for name, waypoint in self.waypoints.items():
+        for  waypoint in self.waypoints.values():
             if self.rect.bottomleft == waypoint.pos:
                 start_node = waypoint
             else:
-                start_node = self.get_closest_node_to_pos(
-                    self.rect.bottomleft)  # TODO: THIS NEEDS TO DIJKSTRA TO NOT WALK BACKWARDS
+                # TODO: THIS NEEDS TO DIJKSTRA TO NOT WALK BACKWARDS
+                start_node = self.get_closest_node_to_pos(self.rect.bottomleft)
         return start_node
 
     def get_closest_node_to_pos(self, pos):
         smallest_path = 999999
         smallest_node = None
-        for name, waypoint in self.waypoints.items():
+        for  waypoint in self.waypoints.values():
             euclid = AStar.calculate_euclidean_distance(waypoint.pos, pos)
             if euclid < smallest_path:
                 smallest_path = euclid
@@ -209,7 +209,7 @@ class PlayerUI(pygame.sprite.Sprite):
         return smallest_node
 
     def find_spawn(self):
-        for name, waypoint in self.waypoints.items():
+        for waypoint in self.waypoints.values():
             if waypoint.is_spawn:
                 self.set_player_start(waypoint)
 

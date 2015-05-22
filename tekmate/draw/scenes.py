@@ -152,8 +152,8 @@ class WorldScene(Scene):
     def get_direction(self, pos):
         return 1 if pos[0] > self.player_ui.rect.left else -1
 
-    def find_shortest_path_to_destination(self, pos, dir):
-        return self.player_ui.find_shortest_path_to_destination(pos, dir)
+    def find_shortest_path_to_destination(self, pos, direction):
+        return self.player_ui.find_shortest_path_to_destination(pos, direction)
 
     def move_to_next_waypoint(self):
         self.trigger_next_animation() if self.is_next_waypoint_not_last_waypoint() \
@@ -368,7 +368,7 @@ class WorldScene(Scene):
 
     def handle_logging_events(self, event):
         if event.type == self.FPS_EVENT:
-            logger.debug("FPS: " + self.game.update_context["clock"].get_fps())
+            logger.debug("FPS: " + str(self.game.update_context["clock"].get_fps()))
 
     def resume(self):
         print("Resuming World")
