@@ -3,13 +3,13 @@ from abc import abstractmethod, ABCMeta
 import os
 from os.path import abspath, join
 from os.path import split
+import sys
 
 import pygame
 from pygameanimation.animation import Animation
-import sys
 
 from tekmate.game import Player
-from tekmate.items import Note, Door, Letter, Paperclip, Key, LetterUnderDoor
+from tekmate.items import Door, Letter, Paperclip, Key, LetterUnderDoor
 from tekmate.pathfinding import AStar
 
 
@@ -121,10 +121,8 @@ class PlayerUI(pygame.sprite.Sprite):
         if self.player.add_item(item_ui.item):
             self.trigger_item_pick_up_animation(item_ui)
             self.hide_item_from_world_when_in_bag(item_ui)
-            if self.item_has_to_be_split(item_ui):
-                self.add_splitted_items_to_bag(item_ui)
-            else:
-                self.add_item_to_ui_bag(item_ui)
+            self.add_splitted_items_to_bag(item_ui) if self.item_has_to_be_split(item_ui) \
+                else self.add_item_to_ui_bag(item_ui)
             map_items.remove(item_ui)
         return item_ui.item.get_add_message()
 
@@ -192,18 +190,18 @@ class PlayerUI(pygame.sprite.Sprite):
 
     def get_start_node(self):
         start_node = None
-        for name, waypoint in self.waypoints.items():
+        for waypoint in self.waypoints.values():
             if self.rect.bottomleft == waypoint.pos:
                 start_node = waypoint
             else:
-                start_node = self.get_closest_node_to_pos(
-                    self.rect.bottomleft)  # TODO: THIS NEEDS TO DIJKSTRA TO NOT WALK BACKWARDS
+                # TODO: THIS NEEDS TO DIJKSTRA TO NOT WALK BACKWARDS
+                start_node = self.get_closest_node_to_pos(self.rect.bottomleft)
         return start_node
 
     def get_closest_node_to_pos(self, pos):
         smallest_path = 999999
         smallest_node = None
-        for name, waypoint in self.waypoints.items():
+        for waypoint in self.waypoints.values():
             euclid = AStar.calculate_euclidean_distance(waypoint.pos, pos)
             if euclid < smallest_path:
                 smallest_path = euclid
@@ -211,7 +209,7 @@ class PlayerUI(pygame.sprite.Sprite):
         return smallest_node
 
     def find_spawn(self):
-        for name, waypoint in self.waypoints.items():
+        for waypoint in self.waypoints.values():
             if waypoint.is_spawn:
                 self.set_player_start(waypoint)
 
@@ -372,35 +370,31 @@ class ItemUI(pygame.sprite.Sprite):
     def get_name(self):
         return self.item.name
 
+    def load_image(self, name):
+        self.image = UI.load_image("items", name)
+        self.image.set_colorkey(UI.COLOR_KEY)
+        self.rect = self.image.get_rect()
+
+
 class NoteUI(ItemUI):
     def setup(self):
-        self.image = UI.load_image("items", "note")
-        self.image = pygame.transform.scale(self.image, (100, 100))
-        self.rect = self.image.get_rect()
-        self.item = Note([])
+        self.load_image("note")
 
 
 class DoorUI(ItemUI):
     def setup(self):
-        self.image = UI.load_image("items", "door")
-        # self.image = pygame.transform.scale(self.image, (64, 190))
-        self.image.set_colorkey(UI.COLOR_KEY)
-        self.rect = self.image.get_rect()
+        self.load_image("door")
         self.item = Door([])
 
 
 class LetterUI(ItemUI):
     def setup(self):
-        self.image = UI.load_image("items", "letter")
-        self.rect = self.image.get_rect()
-        self.image.set_colorkey(UI.COLOR_KEY)
+        self.load_image("letter")
         self.item = Letter([])
         self.is_animation_triggered = True
 
     def change_to_letter_without_paperclip(self):
-        self.image = UI.load_image("items", "letter_no_paperclip")
-        self.rect = self.image.get_rect()
-        self.image.set_colorkey(UI.COLOR_KEY)
+        self.load_image("letter_no_paperclip")
 
     def split(self):
         self.change_to_letter_without_paperclip()
@@ -409,28 +403,25 @@ class LetterUI(ItemUI):
 
 class PaperclipUI(ItemUI):
     def setup(self):
-        self.image = UI.load_image("items", "paperclip")
-        self.rect = self.image.get_rect()
-        self.image.set_colorkey(UI.COLOR_KEY)
+        self.load_image("paperclip")
         self.item = Paperclip([])
         self.is_animation_triggered = True
 
+
 class KeyUI(ItemUI):
     def setup(self):
-        self.image = UI.load_image("items", "key")
-        self.rect = self.image.get_rect()
-        self.image.set_colorkey(UI.COLOR_KEY)
+        self.load_image("key")
         self.item = Key([])
+
 
 class LetterUnderDoorUI(ItemUI):
     def setup(self):
-        self.image = UI.load_image("items", "letter_under_door")
-        self.rect = self.image.get_rect()
-        self.image.set_colorkey(UI.COLOR_KEY)
+        self.load_image("letter_under_door")
         self.item = LetterUnderDoor([])
 
     def split(self):
         return [KeyUI()]
+
 
 class BackgroundUI(pygame.sprite.Sprite):
     def __init__(self, background):
