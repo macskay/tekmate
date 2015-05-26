@@ -2,7 +2,7 @@ argparse==1.3.0
 coverage==4.0a5
 nose==1.3.6
 nose-cov==1.6
-tazlib==1.3.1
+tazlib==1.3.2
 pytmx==3.20.9
 pyscroll==2.14.2
 mock==1.0.1
